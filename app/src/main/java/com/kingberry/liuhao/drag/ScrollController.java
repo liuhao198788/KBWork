@@ -38,11 +38,11 @@ public class ScrollController {
         int viewWidth = mRecyclerView.getWidth();
         if (viewWidth == 0) return 0;
 
-        Log.e("Liuhao offsetX",offsetX+"");
-        Log.e("Liuhao PIndex",offsetX/viewWidth+"");
-        //return (offsetX +mRecyclerView.getWidth()/2) / viewWidth;
+       // Log.e("Liuhao offsetX",offsetX+"");
+        //Log.e("Liuhao PIndex",offsetX/viewWidth+"");
+        return (offsetX +mRecyclerView.getWidth()/2) / viewWidth;
         //modify by liuhao 0724
-        return offsetX/viewWidth;
+        //return offsetX/viewWidth;
     }
 
     public void setOnPageChangeListener(OnPageChangeListener listener) {

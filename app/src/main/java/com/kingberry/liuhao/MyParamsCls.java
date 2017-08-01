@@ -22,4 +22,7 @@ public class MyParamsCls {
     //记录应用是否更新包
     public static boolean isUpdateApp =false;
 
+    //记录监听安装的广播action
+    public static String  mAddAppAction="KingBerry.InstallApp.RecevierAction";
+
 }

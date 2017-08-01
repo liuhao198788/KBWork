@@ -1,6 +1,8 @@
 package com.kingberry.liuhao;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -9,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -21,7 +22,7 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Toast;
 
-import com.kingberry.liuhao.MyIterface.IUninstallLinster;
+import com.kingberry.liuhao.MyIterface.IUninstallListener;
 import com.kingberry.liuhao.drag.DeleteItemInterface;
 import com.kingberry.liuhao.drag.DeleteZone;
 import com.kingberry.liuhao.drag.DragController;
@@ -50,7 +51,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     private static final String TAG="MainActicity";
     private static  final int lineWidth = 15; //网格线的宽度
 
-    private AppInstallStateReceiver mAppStateReceiver=new AppInstallStateReceiver();
+    private AppInstallStateReceiver mAppStateReceiver;
+    AddAppReceiver addAppReceiver;
 
     //抖动 add by liuhao 0721
     private boolean mNeedShake = false;
@@ -98,8 +100,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
     //是否可拖拽
     private boolean isEnableDrag = true;
-
-    private Handler mHandler=new Handler();
 
     /** 控制的postion */
     private int holdPosition;
@@ -162,7 +162,15 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
         setContentView(R.layout.activity_demo);
 
+        Log.e(TAG,"onCreate.....................");
+
         pm = MainActivity.this.getPackageManager();
+
+        initData();
+
+        initDrag();
+
+        initView();
 
         //btnLayout = (LinearLayout) findViewById(R.id.layout_btn);
         //btnLayout.setVisibility(View.GONE);
@@ -171,20 +179,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     @Override
     protected void onResume() {
         super.onResume();
-
-        //注册 安装 卸载 监听广播
-        IntentFilter filter = new IntentFilter();
-        //filter.addAction("android.intent.action.PACKAGE_ADDED");
-        filter.addAction("android.intent.action.PACKAGE_REMOVED");
-        filter.addDataScheme("package");
-        this.registerReceiver(mAppStateReceiver, filter);
-
-        initData();
-
-        initDrag();
-
-        initView();
-
     }
 
     public void onBackPressed() {
@@ -201,9 +195,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     protected void onPause() {
         super.onPause();
 
-
         //Log.e(TAG,"onPause get pks="+sp.getString(strPkgs,""));
-        AppUtils.saveData(MainActivity.this);
+        AppUtils.saveDataOrder(MainActivity.this);
 
         //add by liuhao 0718 end ********************************
     }
@@ -213,9 +206,103 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         if(mAppStateReceiver!=null){
             unregisterReceiver(mAppStateReceiver);
         }
+        if(addAppReceiver!=null){
+            unregisterReceiver(addAppReceiver);
+        }
 
         super.onDestroy();
     }
+
+    private void initView() {
+
+        //Log.e(TAG,"mList size = "+MyParamsCls.mAppList.size());
+
+        /*
+        *************************************************************************************
+        ****************************动态设置recyleView的列数 START****************************
+         *************************************************************************************/
+        //获取屏幕长宽像素信息
+        getDpiInfo();
+
+        mColumn = (int) Math.floor(MyParamsCls.Width / 300);
+        mRow = (int) Math.floor(MyParamsCls.Height / 300);
+
+        pageSize = mRow * mColumn ;
+
+        //Log.e(TAG,"initView -> mColumn ="+mColumn+"  mRow = "+mRow +"  pageSize = "+pageSize);
+         /*
+        *************************************************************************************
+        ****************************动态设置recyleView的列数  END ****************************
+         *************************************************************************************/
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.demo_listview);
+
+        //为recyclerView添加间距
+        SpacesItemDecoration mItemDecoration=new SpacesItemDecoration(MainActivity.this,mRow,mColumn,lineWidth,R.color.black);
+        mRecyclerView.addItemDecoration(mItemDecoration);
+
+        mIndicator = (CircleIndicator) findViewById(R.id.demo_indicator);
+        mAdapter = new DemoAdapter(MyParamsCls.mAppList, this);
+        mAdapter.setLongClickListener(this);
+        mAdapter.setDragListener(this);
+        mRecyclerView.setAdapter(mAdapter);
+
+        horizhontalPageLayoutManager = new HorizontalPageLayoutManager(mRow, mColumn, lineWidth ,this);
+        horizhontalPageLayoutManager.setDragLayer(mDragLayer);
+        indicatorNumber = (MyParamsCls.mAppList.size() / pageSize) + (MyParamsCls.mAppList.size() % pageSize == 0 ? 0 : 1);
+
+        mRecyclerView.setLayoutManager(horizhontalPageLayoutManager);
+
+        //添加分页
+        mScrollController.setUpRecycleView(mRecyclerView);
+        mScrollController.setOnPageChangeListener(this);
+
+        //添加分页指示器--圆形
+        mIndicator.setNumber(indicatorNumber);
+
+        mDragLayer.setDragView(mRecyclerView);
+
+
+        //注册 安装 卸载 监听广播
+        mAppStateReceiver=new AppInstallStateReceiver();
+        IntentFilter filter = new IntentFilter();
+        //filter.addAction("android.intent.action.PACKAGE_ADDED");
+        filter.addAction("android.intent.action.PACKAGE_REMOVED");
+        filter.addDataScheme("package");
+        this.registerReceiver(mAppStateReceiver, filter);
+
+
+        addAppReceiver=new AddAppReceiver();
+        IntentFilter filter1 = new IntentFilter();
+        filter1.addAction(MyParamsCls.mAddAppAction);
+        this.registerReceiver(addAppReceiver, filter1);
+
+//        mAppStateReceiver.setMyInstallListener(new IinstallLinsener() {
+//            @Override
+//            public void addAppItem(String pkg) {
+//
+//                Log.e(TAG,"mAppStateReceiver.setMyInstallListener addAPP:"+pkg);
+//
+//                String[] pksArray=MyParamsCls.appPkgs.split(";");
+//                //根据包名取得应用全部信息ResolveInfo
+//                ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pkg);
+//
+//                AppItem appInfo=new AppItem();
+//                appInfo.setAppIcon(resolveInfo.activityInfo.loadIcon(MainActivity.this.getPackageManager()));
+//                appInfo.setAppName((String) resolveInfo.activityInfo.loadLabel(MainActivity.this.getPackageManager()));
+//                appInfo.setPkgName(resolveInfo.activityInfo.packageName);
+//                appInfo.setAppMainAty(resolveInfo.activityInfo.name);
+//                appInfo.itemPos=pksArray.length;
+//                MyParamsCls.mAppList.add(appInfo.itemPos,appInfo);
+//
+//                mAdapter.notifyDataSetChanged();
+////
+//                AppUtils.saveDataOrder(MainActivity.this);
+//            }
+//        });
+
+    }
+
 
     private void initData(){
 
@@ -266,10 +353,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         }
     }
 
-    public void onPageChange(int index) {
-        mIndicator.setOffset(index);
-    }
-
     private void initDrag() {
         mDragLayer = (DragLayer) findViewById(R.id.demo_draglayer);
         mDeleteZone = (DeleteZone) findViewById(R.id.demo_del_zone);
@@ -291,6 +374,9 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         mDragController.setScrollController(mScrollController);
     }
 
+    public void onPageChange(int index) {
+        mIndicator.setOffset(index);
+    }
     @Override
     public boolean onLongClick(View view) {
 
@@ -357,55 +443,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
     }
 
-    private void initView() {
-
-        Log.e(TAG,"mList size = "+MyParamsCls.mAppList.size());
-
-        /*
-        *************************************************************************************
-        ****************************动态设置recyleView的列数 START****************************
-         *************************************************************************************/
-        //获取屏幕长宽像素信息
-        getDpiInfo();
-
-        mColumn = (int) Math.floor(MyParamsCls.Width / 300);
-        mRow = (int) Math.floor(MyParamsCls.Height / 300);
-
-        pageSize = mRow * mColumn ;
-
-        Log.e(TAG,"initView -> mColumn ="+mColumn+"  mRow = "+mRow +"  pageSize = "+pageSize);
-         /*
-        *************************************************************************************
-        ****************************动态设置recyleView的列数  END ****************************
-         *************************************************************************************/
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.demo_listview);
-
-        //为recyclerView添加间距
-        SpacesItemDecoration mItemDecoration=new SpacesItemDecoration(MainActivity.this,mRow,mColumn,lineWidth,R.color.black);
-        mRecyclerView.addItemDecoration(mItemDecoration);
-
-        mIndicator = (CircleIndicator) findViewById(R.id.demo_indicator);
-        mAdapter = new DemoAdapter(MyParamsCls.mAppList, this);
-        mAdapter.setLongClickListener(this);
-        mAdapter.setDragListener(this);
-        mRecyclerView.setAdapter(mAdapter);
-
-        horizhontalPageLayoutManager = new HorizontalPageLayoutManager(mRow, mColumn, lineWidth ,this);
-        horizhontalPageLayoutManager.setDragLayer(mDragLayer);
-        indicatorNumber = (MyParamsCls.mAppList.size() / pageSize) + (MyParamsCls.mAppList.size() % pageSize == 0 ? 0 : 1);
-
-        mRecyclerView.setLayoutManager(horizhontalPageLayoutManager);
-
-        //添加分页
-        mScrollController.setUpRecycleView(mRecyclerView);
-        mScrollController.setOnPageChangeListener(this);
-
-        //添加分页指示器--圆形
-        mIndicator.setNumber(indicatorNumber);
-
-        mDragLayer.setDragView(mRecyclerView);
-    }
 
     @Override
     public void onDragStarted(View source) {
@@ -431,32 +468,21 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
                         unstallApp(sourceItem.getPkgName());
 
-                        mAppStateReceiver.setMyUninstallListener(new IUninstallLinster() {
+                        mAppStateReceiver.setMyUninstallListener(new IUninstallListener() {
                             public void removeApp(String pkg) {
                                 if (TextUtils.equals(sourceItem.getPkgName(),pkg)){
 
                                     MyParamsCls.mAppList.remove(sourceItem);
                                     mAdapter.notifyDataSetChanged();
-
-                                    AppUtils.saveData(MainActivity.this);
+                                    updateIncatorNum();
+//
+                                    AppUtils.saveDataOrder(MainActivity.this);
 
                                 }else{
                                     return;
                                 }
                             }
-
-                            @Override
-                            public void replaceApp(String pkg) {
-
-                            }
                         });
-
-//                        try {
-//                            ApplicationInfo applicationInfo=pm.getApplicationInfo(sourceItem.getPkgName(),PackageManager.MATCH_UNINSTALLED_PACKAGES);
-//
-//                        } catch (PackageManager.NameNotFoundException e) {
-//                            e.printStackTrace();
-//                        }
 
                     }
                 } else {
@@ -625,6 +651,30 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
         });
         v.startAnimation(mra);
+    }
+
+    class AddAppReceiver extends BroadcastReceiver{
+        public void onReceive(Context context, Intent intent) {
+           String pkg = intent.getStringExtra("addAppPkgName");
+            Log.e(TAG,"mAppStateReceiver.setMyInstallListener addAPP:"+pkg);
+            Log.e(TAG,"mAppStateReceiver.setMyInstallListener size:"+MyParamsCls.mAppList.size());
+
+            //根据包名取得应用全部信息ResolveInfo
+            ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pkg);
+
+            AppItem appInfo=new AppItem();
+            appInfo.setAppIcon(resolveInfo.activityInfo.loadIcon(MainActivity.this.getPackageManager()));
+            appInfo.setAppName((String) resolveInfo.activityInfo.loadLabel(MainActivity.this.getPackageManager()));
+            appInfo.setPkgName(resolveInfo.activityInfo.packageName);
+            appInfo.setAppMainAty(resolveInfo.activityInfo.name);
+            appInfo.itemPos=MyParamsCls.mAppList.size();
+
+            MyParamsCls.mAppList.add(MyParamsCls.mAppList.size(),appInfo);
+
+            mAdapter.notifyDataSetChanged();
+//
+            AppUtils.saveDataOrder(MainActivity.this);
+        }
     }
 
 }

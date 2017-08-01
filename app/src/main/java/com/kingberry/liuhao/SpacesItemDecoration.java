@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 
 /**
@@ -81,7 +80,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             //左边第一列
 
             if ((i % mColumn) == 0) {
-                Log.e("SpacesItemDecoration","mColumn = "+mColumn);
+                //Log.e("SpacesItemDecoration","mColumn = "+mColumn);
                 //item左边分割线
                 left = child.getLeft();
                 right = left + mDividerHight;
@@ -128,7 +127,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             // 最上面一行
             if ((i / mRow) == 0) {
 
-                Log.e("SpacesItemDecoration","mRow = "+mRow);
+               // Log.e("SpacesItemDecoration","mRow = "+mRow);
 
                 //当前item最上面的分割线
                 top = child.getTop();

@@ -14,7 +14,6 @@ import java.util.List;
 
 import static android.content.ContentValues.TAG;
 import static android.content.Context.MODE_PRIVATE;
-import static com.kingberry.liuhao.MyParamsCls.appPkgs;
 
 /**
  * Created by Administrator on 2017/7/19.
@@ -99,17 +98,18 @@ public class AppUtils {
         return apps;
     }
 
-    public static void saveData(Context context){
+    public static void saveDataOrder(Context context){
 
         //保存顺序
         int appCount=MyParamsCls.mAppList.size();
-        appPkgs="";
+        //String mAappPkgs="";
+        MyParamsCls.appPkgs="";
 
         for(int i=0;i<appCount;i++){
             AppItem item=MyParamsCls.mAppList.get(i);
             // TODO
-            appPkgs+=item.getPkgName();
-            appPkgs+=";";
+            MyParamsCls.appPkgs+=item.getPkgName();
+            MyParamsCls.appPkgs+=";";
         }
 
         //保存记录，是否为第一次登陆
@@ -120,11 +120,36 @@ public class AppUtils {
         ed.clear();
 
         ed.putBoolean(strFirstFlag, false);
-        ed.putString(strPkgs, appPkgs);
+        ed.putString(strPkgs, MyParamsCls.appPkgs);
 
         ed.commit();
 
         Log.e(TAG,"onPause appCount="+appCount);
+    }
+
+    //更新安装app后 add 的 UI
+    public static void updateAddItems(Context context,DemoAdapter mAdapter){
+
+        Log.e("AppUtils","updateAppItems..............");
+
+        String[] pksArray=MyParamsCls.appPkgs.split(";");
+
+        for (int i = 0; i < pksArray.length; i++) {
+
+//                Log.e(TAG,"pksArray["+i+"] = "+pksArray[i]);
+            //根据包名取得应用全部信息ResolveInfo
+            ResolveInfo resolveInfo = AppUtils.findAppByPackageName(context,pksArray[i]);
+
+            AppItem appInfo=new AppItem();
+            appInfo.setAppIcon(resolveInfo.activityInfo.loadIcon(context.getPackageManager()));
+            appInfo.setAppName((String) resolveInfo.activityInfo.loadLabel(context.getPackageManager()));
+            appInfo.setPkgName(resolveInfo.activityInfo.packageName);
+            appInfo.setAppMainAty(resolveInfo.activityInfo.name);
+            appInfo.itemPos=i;
+            MyParamsCls.mAppList.add(i,appInfo);
+        }
+
+        mAdapter.notifyDataSetChanged();
     }
 
 }
