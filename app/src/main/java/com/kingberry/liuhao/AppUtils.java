@@ -39,6 +39,9 @@ public class AppUtils {
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         mainIntent.setPackage(mPackageName);
         tmpInfos = pm.queryIntentActivities(mainIntent, 0);
+        if(tmpInfos.size()<=0){
+            return null;
+        }
         newAppInfo = tmpInfos.get(0);
 
         return newAppInfo;

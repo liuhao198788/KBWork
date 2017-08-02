@@ -12,7 +12,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -22,7 +21,6 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Toast;
 
-import com.kingberry.liuhao.MyIterface.IUninstallListener;
 import com.kingberry.liuhao.drag.DeleteItemInterface;
 import com.kingberry.liuhao.drag.DeleteZone;
 import com.kingberry.liuhao.drag.DragController;
@@ -30,7 +28,6 @@ import com.kingberry.liuhao.drag.DragLayer;
 import com.kingberry.liuhao.drag.DragSource;
 import com.kingberry.liuhao.drag.DraggableLayout;
 import com.kingberry.liuhao.drag.ScrollController;
-import com.kingberry.liuhao.receiver.AppInstallStateReceiver;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,8 +48,11 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     private static final String TAG="MainActicity";
     private static  final int lineWidth = 15; //网格线的宽度
 
-    private AppInstallStateReceiver mAppStateReceiver;
-    AddAppReceiver addAppReceiver;
+    //private AppInstallStateReceiver mAppStateReceiver;
+    private AddAppReceiver addAppReceiver;
+    private RemoveAppReceiver removeAppReceiver;
+    private ReplaceAppReceiver replaceAppReceiver;
+
 
     //抖动 add by liuhao 0721
     private boolean mNeedShake = false;
@@ -182,6 +182,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
     public void onBackPressed() {
+        mDeleteZone.setVisibility(View.GONE);
+
         if (!mNeedShake) {
             super.onBackPressed();
         } else {
@@ -203,11 +205,14 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
     @Override
     protected void onDestroy() {
-        if(mAppStateReceiver!=null){
-            unregisterReceiver(mAppStateReceiver);
+        if(removeAppReceiver!=null){
+            unregisterReceiver(removeAppReceiver);
         }
         if(addAppReceiver!=null){
             unregisterReceiver(addAppReceiver);
+        }
+        if(replaceAppReceiver!=null){
+            unregisterReceiver(replaceAppReceiver);
         }
 
         super.onDestroy();
@@ -264,42 +269,44 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
 
         //注册 安装 卸载 监听广播
-        mAppStateReceiver=new AppInstallStateReceiver();
-        IntentFilter filter = new IntentFilter();
-        //filter.addAction("android.intent.action.PACKAGE_ADDED");
-        filter.addAction("android.intent.action.PACKAGE_REMOVED");
-        filter.addDataScheme("package");
-        this.registerReceiver(mAppStateReceiver, filter);
+//        mAppStateReceiver=new AppInstallStateReceiver();
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction("android.intent.action.PACKAGE_ADDED");
+//        filter.addAction("android.intent.action.PACKAGE_REMOVED");
+//        filter.addDataScheme("package");
+//        this.registerReceiver(mAppStateReceiver, filter);
 
-
-        addAppReceiver=new AddAppReceiver();
-        IntentFilter filter1 = new IntentFilter();
-        filter1.addAction(MyParamsCls.mAddAppAction);
-        this.registerReceiver(addAppReceiver, filter1);
-
-//        mAppStateReceiver.setMyInstallListener(new IinstallLinsener() {
-//            @Override
-//            public void addAppItem(String pkg) {
-//
-//                Log.e(TAG,"mAppStateReceiver.setMyInstallListener addAPP:"+pkg);
-//
-//                String[] pksArray=MyParamsCls.appPkgs.split(";");
-//                //根据包名取得应用全部信息ResolveInfo
-//                ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pkg);
-//
-//                AppItem appInfo=new AppItem();
-//                appInfo.setAppIcon(resolveInfo.activityInfo.loadIcon(MainActivity.this.getPackageManager()));
-//                appInfo.setAppName((String) resolveInfo.activityInfo.loadLabel(MainActivity.this.getPackageManager()));
-//                appInfo.setPkgName(resolveInfo.activityInfo.packageName);
-//                appInfo.setAppMainAty(resolveInfo.activityInfo.name);
-//                appInfo.itemPos=pksArray.length;
-//                MyParamsCls.mAppList.add(appInfo.itemPos,appInfo);
-//
-//                mAdapter.notifyDataSetChanged();
-////
+//        mAppStateReceiver.setMyUninstallListener(new IUninstallListener() {
+//            public void removeApp(String pkg) {
+//                for (int i = 0; i < MyParamsCls.mAppList.size(); i++) {
+//                    AppItem item = MyParamsCls.mAppList.get(i);
+//                    if(item.getAppName().equals(pkg)){
+//                        Log.e(TAG,"REMOVE:"+i+" -> "+item.getAppName());
+//                        MyParamsCls.mAppList.remove(item);
+//                        mAdapter.notifyDataSetChanged();
+//                        updateIncatorNum();
+//                        break;
+//                    }
+//                }
 //                AppUtils.saveDataOrder(MainActivity.this);
 //            }
 //        });
+
+        addAppReceiver=new AddAppReceiver();
+        IntentFilter addFilter = new IntentFilter();
+        addFilter.addAction(MyParamsCls.mAddAppAction);
+        this.registerReceiver(addAppReceiver, addFilter);
+
+
+        removeAppReceiver=new RemoveAppReceiver();
+        IntentFilter removeFilter = new IntentFilter();
+        removeFilter.addAction(MyParamsCls.mRemoveAppAction);
+        this.registerReceiver(removeAppReceiver, removeFilter);
+
+        replaceAppReceiver=new ReplaceAppReceiver();
+        IntentFilter replaceFilter = new IntentFilter();
+        replaceFilter.addAction(MyParamsCls.mReplaceAppAction);
+        this.registerReceiver(replaceAppReceiver, replaceFilter);
 
     }
 
@@ -332,13 +339,13 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
             MyParamsCls.appPkgs=sp.getString(strPkgs,"");
 
-            //Log.e(TAG,"initData get pks="+sp.getString(strPkgs,""));
+            Log.e(TAG,"initData get pks="+sp.getString(strPkgs,""));
 
             String[] pksArray=MyParamsCls.appPkgs.split(";");
 
             for (int i = 0; i < pksArray.length; i++) {
 
-//                Log.e(TAG,"pksArray["+i+"] = "+pksArray[i]);
+                Log.e(TAG,"pksArray["+i+"] = "+pksArray[i]);
                 //根据包名取得应用全部信息ResolveInfo
                 ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pksArray[i]);
 
@@ -468,21 +475,21 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
                         unstallApp(sourceItem.getPkgName());
 
-                        mAppStateReceiver.setMyUninstallListener(new IUninstallListener() {
-                            public void removeApp(String pkg) {
-                                if (TextUtils.equals(sourceItem.getPkgName(),pkg)){
-
-                                    MyParamsCls.mAppList.remove(sourceItem);
-                                    mAdapter.notifyDataSetChanged();
-                                    updateIncatorNum();
+//                        mAppStateReceiver.setMyUninstallListener(new IUninstallListener() {
+//                            public void removeApp(String pkg) {
+//                                if (TextUtils.equals(sourceItem.getPkgName(),pkg)){
 //
-                                    AppUtils.saveDataOrder(MainActivity.this);
-
-                                }else{
-                                    return;
-                                }
-                            }
-                        });
+//                                    MyParamsCls.mAppList.remove(sourceItem);
+//                                    mAdapter.notifyDataSetChanged();
+//                                    updateIncatorNum();
+////
+//                                    AppUtils.saveDataOrder(MainActivity.this);
+//
+//                                }else{
+//                                    return;
+//                                }
+//                            }
+//                        });
 
                     }
                 } else {
@@ -498,6 +505,18 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
                 AppItem targetItem = ((DraggableLayout) target).getItem();
                 if(targetItem == null){
+                    //add by liuhao 0802
+                    mDeleteZone.setVisibility(View.GONE);
+
+                    if (!mNeedShake) {
+                        super.onBackPressed();
+                    } else {
+                        mNeedShake = false;
+                        mCount = 0;
+                        mStartShake = false;
+                    }
+                    //end
+
                     Lg.e("targetItem is null in replace action !!!");
                     return;
                 }
@@ -657,7 +676,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         public void onReceive(Context context, Intent intent) {
            String pkg = intent.getStringExtra("addAppPkgName");
             Log.e(TAG,"mAppStateReceiver.setMyInstallListener addAPP:"+pkg);
-            Log.e(TAG,"mAppStateReceiver.setMyInstallListener size:"+MyParamsCls.mAppList.size());
+//            Log.e(TAG,"mAppStateReceiver.setMyInstallListener size:"+MyParamsCls.mAppList.size());
 
             //根据包名取得应用全部信息ResolveInfo
             ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pkg);
@@ -672,9 +691,43 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             MyParamsCls.mAppList.add(MyParamsCls.mAppList.size(),appInfo);
 
             mAdapter.notifyDataSetChanged();
+            updateIncatorNum();
+
 //
             AppUtils.saveDataOrder(MainActivity.this);
         }
     }
 
+    class RemoveAppReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String pkg = intent.getStringExtra("removeAppPkgName");
+            Log.e(TAG,"remove:"+" -> "+pkg);
+
+            for (int i = 0; i < MyParamsCls.mAppList.size(); i++) {
+                    AppItem item = MyParamsCls.mAppList.get(i);
+                if(item.getPkgName().equals(pkg)){
+                        Log.e(TAG,"REMOVE:"+i+" -> "+item.getAppName());
+                        MyParamsCls.mAppList.remove(item);
+                        mAdapter.notifyDataSetChanged();
+                        updateIncatorNum();
+                        break;
+                    }
+                }
+                AppUtils.saveDataOrder(MainActivity.this);
+        }
+    }
+
+    class ReplaceAppReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String pkg = intent.getStringExtra("replaceAppPkgName");
+            Log.e(TAG,"ReplaceAppReceiver:"+" -> "+pkg);
+
+            //重启自身，以便刷新界面
+            Intent restartIntent=pm.getLaunchIntentForPackage("com.kingberry.liuhao");
+            restartIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(restartIntent);
+        }
+    }
 }

@@ -3,7 +3,6 @@ package com.kingberry.liuhao.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -17,12 +16,12 @@ import com.kingberry.liuhao.MyParamsCls;
 
 public class AppInstallStateReceiver extends BroadcastReceiver {
 
-    private final String TAG = this.getClass().getSimpleName();
-    public static SharedPreferences sp;
-    public static SharedPreferences.Editor ed;
-    public static final String mDATA_NAME="mSaveData";
-    public static final String strFirstFlag="isFirstLoad";
-    public static final String strPkgs="PKGS";
+//    private final String TAG = this.getClass().getSimpleName();
+//    public static SharedPreferences sp;
+//    public static SharedPreferences.Editor ed;
+//    public static final String mDATA_NAME="mSaveData";
+//    public static final String strFirstFlag="isFirstLoad";
+//    public static final String strPkgs="PKGS";
 
     private IUninstallListener mUnstallListener;
     private IinstallLinsener mInstallLins;
@@ -37,18 +36,13 @@ public class AppInstallStateReceiver extends BroadcastReceiver {
         this.mUnstallListener = mUnstallListener;
     }
 
-    public AppInstallStateReceiver(){
-
-    }
-    @Override
+      @Override
     public void onReceive(Context context, Intent intent) {
 
         if (TextUtils.equals(intent.getAction(), Intent.ACTION_PACKAGE_ADDED)) {
 
             //如果更新应用，也会发出 安装的广播
-//            if (MyParamsCls.isUpdateApp==true){
-//                return;
-//            }
+
             String packageName = intent.getData().getSchemeSpecificPart();
 
             String[] pksArray=MyParamsCls.appPkgs.split(";");
@@ -79,46 +73,31 @@ public class AppInstallStateReceiver extends BroadcastReceiver {
 //                }
                 Log.e("AppInstallStateReceiver","true*************"+MyParamsCls.appPkgs);
             }
-
-//            sp = context.getSharedPreferences(mDATA_NAME, MODE_PRIVATE);
-//            ed = sp.edit();
 //
-//            ed.clear();
-//
-//            ed.putBoolean(strFirstFlag, false);
-//            ed.putString(strPkgs, MyParamsCls.appPkgs);
-//
-//            ed.commit();
-//
-//            AppUtils.updateAddItems(context,mAdapter);
 
         } else if (TextUtils.equals(intent.getAction(), Intent.ACTION_PACKAGE_REPLACED)) {
-//            MyParamsCls.isUpdateApp=true;
-//
-//            String packageName = intent.getData().getSchemeSpecificPart();
-//            String[] pksArray=MyParamsCls.appPkgs.split(";");
-//
-//            for (int i = 0; i < pksArray.length; i++) {
-//                if (packageName.equals(pksArray[i])){
-//                    break;
-//                }else{
-//                    MyParamsCls.appPkgs+=packageName;
-//                    MyParamsCls.appPkgs+=";";
-//                    Log.e("AppInstallStateReceiver","onReceive:"+MyParamsCls.appPkgs);
-//                }
-//            }
-//
-//            AppUtils.updateAppItems(context);
-//
-////            AppUtils.saveData(context);
-//            Log.e(TAG, "--------替换成功" + packageName);
+            String packageName = intent.getData().getSchemeSpecificPart();
+
+            Log.e("AppInstallStateReceiver", "--------替换成功" + packageName);
+            // 发送广播
+            Intent mIntent=new Intent();
+            mIntent.setAction(MyParamsCls.mReplaceAppAction);
+            mIntent.putExtra("replaceAppPkgName",packageName);
+            context.sendBroadcast(mIntent);
 
         } else if (TextUtils.equals(intent.getAction(), Intent.ACTION_PACKAGE_REMOVED)) {
             String packageName = intent.getData().getSchemeSpecificPart();
-            if(mUnstallListener!=null&&!TextUtils.isEmpty(packageName)){
-                mUnstallListener.removeApp(packageName);
-                Log.e(TAG, packageName + "--------卸载成功");
-            }
+
+            // 发送广播
+            Intent mIntent=new Intent();
+            mIntent.setAction(MyParamsCls.mRemoveAppAction);
+            mIntent.putExtra("removeAppPkgName",packageName);
+            context.sendBroadcast(mIntent);
+
+//            if(mUnstallListener!=null&&!TextUtils.isEmpty(packageName)){
+//                mUnstallListener.removeApp(packageName);
+//                Log.e(TAG, packageName + "--------卸载成功");
+//            }
         }
     }
 

@@ -24,5 +24,7 @@ public class MyParamsCls {
 
     //记录监听安装的广播action
     public static String  mAddAppAction="KingBerry.InstallApp.RecevierAction";
+    public static String  mRemoveAppAction="KingBerry.RemoveApp.RecevierAction";
+    public static String  mReplaceAppAction="KingBerry.ReplaceApp.RecevierAction";
 
 }

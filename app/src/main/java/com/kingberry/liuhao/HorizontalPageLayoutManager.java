@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,7 +78,7 @@ public class HorizontalPageLayoutManager extends RecyclerView.LayoutManager {
         } else if (newX < 0) {
             result = 0 - offsetX;
         }
-        Log.e("*********","offsetX:"+offsetX +"--totalWidth:"+totalWidth+"--result:"+result+"--dx:"+dx);
+//      Log.e("*********","offsetX:"+offsetX +"--totalWidth:"+totalWidth+"--result:"+result+"--dx:"+dx);
         offsetX += result;
         offsetChildrenHorizontal(-result);//滑动
         // 先将不需要的Item进行回收，然后在从缓存中取出需要的Item
