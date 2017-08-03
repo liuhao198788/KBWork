@@ -29,7 +29,6 @@ import com.kingberry.liuhao.drag.DragSource;
 import com.kingberry.liuhao.drag.DraggableLayout;
 import com.kingberry.liuhao.drag.ScrollController;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.kingberry.liuhao.AppUtils.mDATA_NAME;
@@ -268,30 +267,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         mDragLayer.setDragView(mRecyclerView);
 
 
-        //注册 安装 卸载 监听广播
-//        mAppStateReceiver=new AppInstallStateReceiver();
-//        IntentFilter filter = new IntentFilter();
-//        filter.addAction("android.intent.action.PACKAGE_ADDED");
-//        filter.addAction("android.intent.action.PACKAGE_REMOVED");
-//        filter.addDataScheme("package");
-//        this.registerReceiver(mAppStateReceiver, filter);
-
-//        mAppStateReceiver.setMyUninstallListener(new IUninstallListener() {
-//            public void removeApp(String pkg) {
-//                for (int i = 0; i < MyParamsCls.mAppList.size(); i++) {
-//                    AppItem item = MyParamsCls.mAppList.get(i);
-//                    if(item.getAppName().equals(pkg)){
-//                        Log.e(TAG,"REMOVE:"+i+" -> "+item.getAppName());
-//                        MyParamsCls.mAppList.remove(item);
-//                        mAdapter.notifyDataSetChanged();
-//                        updateIncatorNum();
-//                        break;
-//                    }
-//                }
-//                AppUtils.saveDataOrder(MainActivity.this);
-//            }
-//        });
-
         addAppReceiver=new AddAppReceiver();
         IntentFilter addFilter = new IntentFilter();
         addFilter.addAction(MyParamsCls.mAddAppAction);
@@ -466,31 +441,12 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             if (target instanceof DeleteZone) {
                 if(sourceItem == null){
                     Log.e(TAG,"sourceItem is null in delete action !!!");
-
                     return;
                 }
 
                 if (sourceItem.isDeletable()) {
                     if(MyParamsCls.mAppList.contains(sourceItem)){
-
                         unstallApp(sourceItem.getPkgName());
-
-//                        mAppStateReceiver.setMyUninstallListener(new IUninstallListener() {
-//                            public void removeApp(String pkg) {
-//                                if (TextUtils.equals(sourceItem.getPkgName(),pkg)){
-//
-//                                    MyParamsCls.mAppList.remove(sourceItem);
-//                                    mAdapter.notifyDataSetChanged();
-//                                    updateIncatorNum();
-////
-//                                    AppUtils.saveDataOrder(MainActivity.this);
-//
-//                                }else{
-//                                    return;
-//                                }
-//                            }
-//                        });
-
                     }
                 } else {
                     Toast.makeText(MainActivity.this, "不能删除这个条目！", Toast.LENGTH_SHORT).show();
@@ -530,6 +486,9 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         }
     }
 
+    /*
+       item 位置交换
+     */
     private void executeItemReplaceAction(AppItem sourceItem, AppItem targetItem) {
 
         //来源item信息
@@ -540,7 +499,9 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
         Lg.d("sourcePos: " + sourcePos + " targetPos: " + targetPos);
         //位置交换
-        Collections.swap(MyParamsCls.mAppList, sourcePos, targetPos);
+        //Collections.swap(MyParamsCls.mAppList, sourcePos, targetPos);
+        //modify by liuhao 0803 for Change itemPositon
+        exChangePosition(sourcePos,targetPos);
         refreshItemList();
         mAdapter.notifyDataSetChanged();
         //modify by liuhao 0728 for changerPosition
@@ -568,8 +529,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             MyParamsCls.mAppList.add(dropPostion, item);
             MyParamsCls.mAppList.remove(dragPostion + 1);
         }
-
-        mAdapter.notifyDataSetChanged();
     }
 
 
@@ -672,6 +631,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         v.startAnimation(mra);
     }
 
+
     class AddAppReceiver extends BroadcastReceiver{
         public void onReceive(Context context, Intent intent) {
            String pkg = intent.getStringExtra("addAppPkgName");
@@ -690,6 +650,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
             MyParamsCls.mAppList.add(MyParamsCls.mAppList.size(),appInfo);
 
+            refreshItemList();
             mAdapter.notifyDataSetChanged();
             updateIncatorNum();
 
@@ -709,6 +670,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                 if(item.getPkgName().equals(pkg)){
                         Log.e(TAG,"REMOVE:"+i+" -> "+item.getAppName());
                         MyParamsCls.mAppList.remove(item);
+
+                        refreshItemList();
                         mAdapter.notifyDataSetChanged();
                         updateIncatorNum();
                         break;
@@ -725,6 +688,10 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             Log.e(TAG,"ReplaceAppReceiver:"+" -> "+pkg);
 
             //重启自身，以便刷新界面
+            refreshItemList();
+            mAdapter.notifyDataSetChanged();
+            updateIncatorNum();
+
             Intent restartIntent=pm.getLaunchIntentForPackage("com.kingberry.liuhao");
             restartIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(restartIntent);
