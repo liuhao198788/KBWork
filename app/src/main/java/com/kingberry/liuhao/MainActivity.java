@@ -21,11 +21,11 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Toast;
 
-import com.kingberry.liuhao.drag.DeleteItemInterface;
+import com.kingberry.liuhao.MyIterface.DeleteItemInterface;
 import com.kingberry.liuhao.drag.DeleteZone;
 import com.kingberry.liuhao.drag.DragController;
 import com.kingberry.liuhao.drag.DragLayer;
-import com.kingberry.liuhao.drag.DragSource;
+import com.kingberry.liuhao.MyIterface.DragSource;
 import com.kingberry.liuhao.drag.DraggableLayout;
 import com.kingberry.liuhao.drag.ScrollController;
 
@@ -320,7 +320,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
             for (int i = 0; i < pksArray.length; i++) {
 
-                Log.e(TAG,"pksArray["+i+"] = "+pksArray[i]);
+                //Log.e(TAG,"pksArray["+i+"] = "+pksArray[i]);
                 //根据包名取得应用全部信息ResolveInfo
                 ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pksArray[i]);
 
@@ -691,6 +691,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             refreshItemList();
             mAdapter.notifyDataSetChanged();
             updateIncatorNum();
+            AppUtils.saveDataOrder(MainActivity.this);
 
             Intent restartIntent=pm.getLaunchIntentForPackage("com.kingberry.liuhao");
             restartIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -6,6 +6,10 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.kingberry.liuhao.MyIterface.DeleteItemInterface;
+import com.kingberry.liuhao.MyIterface.DragSource;
+import com.kingberry.liuhao.MyIterface.DropTarget;
+
 /**
  * Created by Administrator on 2017/7/17.
  */

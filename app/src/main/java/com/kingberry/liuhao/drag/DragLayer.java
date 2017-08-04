@@ -8,6 +8,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.kingberry.liuhao.MyIterface.DragSource;
+import com.kingberry.liuhao.MyIterface.DropTarget;
+
 /**
  * Created by liuhao on 2017/7/17.
  */
@@ -46,7 +49,6 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
     public boolean dispatchUnhandledMove(View focused, int direction) {
         return mDragController.dispatchUnhandledMove(focused, direction);
     }
-
 
     public RecyclerView getDragView() {
         return mView;
@@ -130,4 +132,5 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
     public DragController.DraggingListener getDraggingListener() {
         return this.listener;
     }
+
 }

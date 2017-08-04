@@ -1,6 +1,8 @@
-package com.kingberry.liuhao.drag;
+package com.kingberry.liuhao.MyIterface;
 
 import android.graphics.Rect;
+
+import com.kingberry.liuhao.drag.DragView;
 
 /**
  * Created by Administrator on 2017/7/17.

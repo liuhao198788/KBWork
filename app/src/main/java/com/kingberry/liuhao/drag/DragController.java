@@ -15,6 +15,9 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.kingberry.liuhao.Lg;
+import com.kingberry.liuhao.MyIterface.DragListener;
+import com.kingberry.liuhao.MyIterface.DragSource;
+import com.kingberry.liuhao.MyIterface.DropTarget;
 
 import java.util.ArrayList;
 

@@ -9,12 +9,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.kingberry.liuhao.AppItem;
+import com.kingberry.liuhao.MyIterface.DragListener;
+import com.kingberry.liuhao.MyIterface.DragSource;
+import com.kingberry.liuhao.MyIterface.DropTarget;
 
 /**
  * Created by Administrator on 2017/7/17.
  */
 
-public class DraggableLayout extends LinearLayout implements DropTarget ,DragSource{
+public class DraggableLayout extends LinearLayout implements DropTarget,DragSource {
 
     private ImageView image;
     private TextView text;
