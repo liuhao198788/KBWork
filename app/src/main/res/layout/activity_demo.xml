@@ -49,11 +49,11 @@
         <com.kingberry.liuhao.CircleIndicator
             android:id="@+id/demo_indicator"
             android:layout_width="wrap_content"
-            android:layout_height="8dp"
-            app:circle_color_bg="@color/color_777572"
+            android:layout_height="16dp"
+            app:circle_color_bg="@color/color_333333"
             app:circle_color_selected="@color/white"
-            app:circle_radius="5dp"
-            app:circle_space="20dp"
+            app:circle_radius="8dp"
+            app:circle_space="25dp"
             android:layout_margin="10dp"/>
 
     </com.kingberry.liuhao.drag.DragLayer>
