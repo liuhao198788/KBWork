@@ -327,7 +327,7 @@ public class DragController {
             case MotionEvent.ACTION_MOVE:
                 //移动拖拽视图
                 dragView.move((int) ev.getRawX(), (int) ev.getRawY());
-                Log.e("********","********************");
+                Log.e("DragController","移动拖拽视图");
                 //左右滑屏
                 monitorPageTurning(ev, displayMetrics, dragView);
 
@@ -376,7 +376,7 @@ public class DragController {
             //右边有效翻页区域（不能是屏幕宽度，因为getRawX到达不了这个宽度值）
             int rightValidZone = metrics.widthPixels - VALID_ZONE;
 
-            Log.e("*****DragController****",metrics.widthPixels+"");
+            Log.e("DragController","monitorPageTurning : ->"+metrics.widthPixels);
 
             //左边有效翻页区域
             int leftValidZone = VALID_ZONE;
@@ -476,7 +476,7 @@ public class DragController {
             dropTarget.onDrop(dragSource, coordinates[0], coordinates[1],
                     (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
             View v = (View) dropTarget;
-            Lg.e("drop============== view: " + v);
+            Lg.e("DragController============= view: " + v);
             dragSource.onDropCompleted(v, true);
             return true;
         }

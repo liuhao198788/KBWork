@@ -26,6 +26,7 @@ public class AppUtils {
     public static final String mDATA_NAME="mSaveData";
     public static final String strFirstFlag="isFirstLoad";
     public static final String strPkgs="PKGS";
+    public static final String MAIN_ATY="MainAtys";
 
     //根据包名取得应用全部信息ResolveInfo
     public  static ResolveInfo findAppByPackageName(Context context, String mPackageName)
@@ -107,12 +108,16 @@ public class AppUtils {
         int appCount=MyParamsCls.mAppList.size();
         //String mAappPkgs="";
         MyParamsCls.appPkgs="";
+        MyParamsCls.mainAty="";
 
         for(int i=0;i<appCount;i++){
             AppItem item=MyParamsCls.mAppList.get(i);
             // TODO
             MyParamsCls.appPkgs+=item.getPkgName();
             MyParamsCls.appPkgs+=";";
+
+            MyParamsCls.mainAty+=item.getAppMainAty();
+            MyParamsCls.mainAty+=";";
         }
 
         //保存记录，是否为第一次登陆
@@ -124,6 +129,7 @@ public class AppUtils {
 
         ed.putBoolean(strFirstFlag, false);
         ed.putString(strPkgs, MyParamsCls.appPkgs);
+        ed.putString(MAIN_ATY, MyParamsCls.mainAty);
 
         ed.commit();
 

@@ -2,6 +2,7 @@ package com.kingberry.liuhao;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -22,15 +23,16 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Toast;
 
 import com.kingberry.liuhao.MyIterface.DeleteItemInterface;
+import com.kingberry.liuhao.MyIterface.DragSource;
 import com.kingberry.liuhao.drag.DeleteZone;
 import com.kingberry.liuhao.drag.DragController;
 import com.kingberry.liuhao.drag.DragLayer;
-import com.kingberry.liuhao.MyIterface.DragSource;
 import com.kingberry.liuhao.drag.DraggableLayout;
 import com.kingberry.liuhao.drag.ScrollController;
 
 import java.util.List;
 
+import static com.kingberry.liuhao.AppUtils.MAIN_ATY;
 import static com.kingberry.liuhao.AppUtils.mDATA_NAME;
 import static com.kingberry.liuhao.AppUtils.strFirstFlag;
 import static com.kingberry.liuhao.AppUtils.strPkgs;
@@ -100,8 +102,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     //是否可拖拽
     private boolean isEnableDrag = true;
 
-    /** 控制的postion */
-    private int holdPosition;
+    /** 拖动完成时，需要更新数据的页面 */
+    private int needUpdateDataPageIndex=-1;
 
     /**
      * @Title: getDpiInfo
@@ -229,7 +231,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         getDpiInfo();
 
         mColumn = (int) Math.floor(MyParamsCls.Width / 300);
-        mRow = (int) Math.floor(MyParamsCls.Height / 300);
+        mRow = (int) Math.floor(MyParamsCls.Height / 400);
 
         pageSize = mRow * mColumn ;
 
@@ -295,42 +297,63 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             List<ResolveInfo> apps=AppUtils.getAllApps(MainActivity.this);
             int  i=0;
             for (ResolveInfo pkg : apps){
-
-                AppItem appInfo=new AppItem();
-                appInfo.setAppIcon(pkg.activityInfo.loadIcon(pm));
-                appInfo.setAppName((String) pkg.activityInfo.loadLabel(pm));
-                appInfo.setPkgName(pkg.activityInfo.packageName);
-                appInfo.setAppMainAty(pkg.activityInfo.name);
-                appInfo.itemPos=i;
-                MyParamsCls.mAppList.add(appInfo);
-                i++;
+                    //ActivityInfo atyInfo = pm.getActivityInfo(getComponentName(),PackageManager.GET_META_DATA);
+                    AppItem appInfo=new AppItem();
+                    appInfo.setAppIcon(pkg.activityInfo.loadIcon(pm));
+                    appInfo.setAppName((String) pkg.activityInfo.loadLabel(pm));
+                    appInfo.setPkgName(pkg.activityInfo.packageName);
+                    appInfo.setAppMainAty(pkg.activityInfo.name);
+                    appInfo.itemPos=i;
+                    MyParamsCls.mAppList.add(appInfo);
+                    i++;
             }
         }
         else{
-
             //Log.e(TAG,"*********NO FIRST*********");
             MyParamsCls.mAppList.clear();
             //MyParamsCls.mAppList.removeAll(MyParamsCls.mAppList);
 
             MyParamsCls.appPkgs=sp.getString(strPkgs,"");
+            MyParamsCls.mainAty=sp.getString(MAIN_ATY,"");
 
-            Log.e(TAG,"initData get pks="+sp.getString(strPkgs,""));
+            //Log.e(TAG,"initData get pks="+sp.getString(strPkgs,""));
+            Log.e(TAG,"initData get mainAty="+sp.getString(MAIN_ATY,""));
 
             String[] pksArray=MyParamsCls.appPkgs.split(";");
+            String[] mainAtyArray=MyParamsCls.mainAty.split(";");
+
+//            List<ResolveInfo> resolveInfos=AppUtils.getAllApps(MainActivity.this);
 
             for (int i = 0; i < pksArray.length; i++) {
-
-                //Log.e(TAG,"pksArray["+i+"] = "+pksArray[i]);
+//                ResolveInfo resolveInfo=new ResolveInfo();
+//                for (ResolveInfo tmpResolveInfo : resolveInfos) {
+//                    if (tmpResolveInfo.activityInfo.packageName.equals(pksArray[i])) {
+//                        resolveInfo=tmpResolveInfo;
+//                        break;
+//                    }
+//                }
+                Log.e(TAG,"mainAtyArray["+i+"] = "+mainAtyArray[i]);
                 //根据包名取得应用全部信息ResolveInfo
-                ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this,pksArray[i]);
+                ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this, pksArray[i]);
 
-                AppItem appInfo=new AppItem();
-                appInfo.setAppIcon(resolveInfo.activityInfo.loadIcon(pm));
-                appInfo.setAppName((String) resolveInfo.activityInfo.loadLabel(pm));
-                appInfo.setPkgName(resolveInfo.activityInfo.packageName);
-                appInfo.setAppMainAty(resolveInfo.activityInfo.name);
-                appInfo.itemPos=i;
-                MyParamsCls.mAppList.add(i,appInfo);
+                ComponentName  cn= new ComponentName(resolveInfo.activityInfo.packageName, mainAtyArray[i]);
+
+                try {
+                    AppItem appInfo = new AppItem();
+                    appInfo.setAppIcon(pm.getActivityIcon(cn));
+                    appInfo.setAppName(pm.getActivityInfo(cn,0).loadLabel(pm)+"");
+                    appInfo.setPkgName(resolveInfo.activityInfo.packageName);
+                    appInfo.setAppMainAty(mainAtyArray[i]);
+                    appInfo.itemPos = i;
+                    MyParamsCls.mAppList.add(i, appInfo);
+
+//                    Log.e(TAG, "appName:" + pm.getActivityInfo(cn,0).loadLabel(pm)+"");
+//                    Log.e(TAG, "pkgName:" + resolveInfo.activityInfo.packageName);
+//                    Log.e(TAG, "mainAty:" + mainAtyArray[i]);
+
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -358,7 +381,15 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
     public void onPageChange(int index) {
         mIndicator.setOffset(index);
+
+        //add by liuhao 0808
+        if(needUpdateDataPageIndex!=-1&&index==needUpdateDataPageIndex){
+            mAdapter.notifyDataSetChanged();
+            needUpdateDataPageIndex=-1;
+        }
+
     }
+
     @Override
     public boolean onLongClick(View view) {
 
@@ -463,14 +494,9 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                 if(targetItem == null){
                     //add by liuhao 0802
                     mDeleteZone.setVisibility(View.GONE);
-
-                    if (!mNeedShake) {
-                        super.onBackPressed();
-                    } else {
-                        mNeedShake = false;
-                        mCount = 0;
-                        mStartShake = false;
-                    }
+                    mNeedShake = false;
+                    mCount = 0;
+                    mStartShake = false;
                     //end
 
                     Lg.e("targetItem is null in replace action !!!");
@@ -484,6 +510,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         if(mDragLayer.getDraggingListener() != null){
             mDragLayer.getDraggingListener().onDragEnd();
         }
+
     }
 
     /*
@@ -498,6 +525,11 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         int targetPos = targetItem.itemPos;
 
         Lg.d("sourcePos: " + sourcePos + " targetPos: " + targetPos);
+
+        //add by liuhao 0808
+        if(sourcePos/pageSize!=targetPos/pageSize){
+            needUpdateDataPageIndex=sourcePos/pageSize;
+        }
         //位置交换
         //Collections.swap(MyParamsCls.mAppList, sourcePos, targetPos);
         //modify by liuhao 0803 for Change itemPositon
@@ -519,7 +551,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
      * dragPostion @param @param dropPostion 参数 @return void 返回类型 @throws
      */
     public void exChangePosition(int dragPostion, int dropPostion) {
-        holdPosition = dropPostion;
+        //holdPosition = dropPostion;
         AppItem item = MyParamsCls.mAppList.get(dragPostion);
         Log.e("liuhao Adapter", "startPostion=" + dragPostion + ";endPosition=" + dropPostion);
         if (dragPostion < dropPostion) {

@@ -121,4 +121,5 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
     public void canDelete(boolean b) {
         this.isDelete = b;
     }
+
 }
