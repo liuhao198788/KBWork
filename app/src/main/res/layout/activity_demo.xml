@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:point="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -42,7 +42,6 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:overScrollMode="never"
-
             android:clipChildren="false"
             />
 
@@ -50,10 +49,10 @@
             android:id="@+id/demo_indicator"
             android:layout_width="wrap_content"
             android:layout_height="10dp"
-            app:circle_color_bg="@color/color_333333"
-            app:circle_color_selected="@color/white"
-            app:circle_radius="5dp"
-            app:circle_space="20dp"
+            point:circle_color_bg="@color/color_333333"
+            point:circle_color_selected="@color/white"
+            point:circle_radius="5dp"
+            point:circle_space="20dp"
             android:layout_margin="2dp"/>
 
     </com.kingberry.liuhao.drag.DragLayer>

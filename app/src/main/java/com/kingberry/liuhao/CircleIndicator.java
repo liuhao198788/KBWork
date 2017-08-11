@@ -77,7 +77,6 @@ public class CircleIndicator extends View {
             canvas.drawCircle(startOffset + indicatorSpace * i, indicatorHeight / 2, mRadius, mBgPaint);
         }
         canvas.drawCircle(startOffset + mOffset, indicatorHeight / 2, mRadius, mFrantPain);
-
     }
 
     public void setOffset(int position) {

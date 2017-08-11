@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/KingBerryWork.iml" filepath="$PROJECT_DIR$/KingBerryWork.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mlauncher02/mlauncher02.iml" filepath="$PROJECT_DIR$/mlauncher02/mlauncher02.iml" />
     </modules>
   </component>
 </project>
