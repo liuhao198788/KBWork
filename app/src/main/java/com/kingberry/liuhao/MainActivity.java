@@ -47,6 +47,7 @@ import static com.kingberry.liuhao.AppUtils.strPkgs;
 public class MainActivity extends Activity implements ScrollController.OnPageChangeListener, DragController.DraggingListener, DeleteItemInterface, View.OnLongClickListener, DemoAdapter.ItemDragListener{
 
     private static final String TAG="MainActicity";
+    private static final String MY_KB_PKG_NAME ="com.kingberry.liuhao";
     private static  final int lineWidth = 15; //网格线的宽度
 
     //private AppInstallStateReceiver mAppStateReceiver;
@@ -298,6 +299,9 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             int  i=0;
             for (ResolveInfo pkg : apps){
                     //ActivityInfo atyInfo = pm.getActivityInfo(getComponentName(),PackageManager.GET_META_DATA);
+                    if(pkg.activityInfo.packageName.equals(MY_KB_PKG_NAME)){
+                        continue;
+                    }
                     AppItem appInfo=new AppItem();
                     appInfo.setAppIcon(pkg.activityInfo.loadIcon(pm));
                     appInfo.setAppName((String) pkg.activityInfo.loadLabel(pm));
@@ -424,7 +428,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 //                Toast.makeText(MainActivity.this, "系统应用，不能卸载 ！", Toast.LENGTH_SHORT).show();
 //                return;
             } else {
-                if (appInfo.packageName.contains("com.kingberry.liuhao")) {
+                if (appInfo.packageName.contains(MY_KB_PKG_NAME)) {
                     mDeleteZone.setVisibility(View.GONE);
 //                    Toast.makeText(MainActivity.this, "应用 ：" + appInfo.loadLabel(pm) + " 不能被卸载！", Toast.LENGTH_SHORT).show();
 //                    return;

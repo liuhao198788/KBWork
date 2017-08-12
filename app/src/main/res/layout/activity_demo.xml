@@ -27,11 +27,12 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/delete" />
             <TextView
+                android:id="@+id/mInstallTxt"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:textColor="@color/white"
                 android:textSize="18sp"
-                android:text="拖入此处可卸载"
+                android:text="@string/deleteApp"
                 />
         </com.kingberry.liuhao.drag.DeleteZone>
 

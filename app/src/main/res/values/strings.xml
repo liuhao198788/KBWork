@@ -2,5 +2,6 @@
 <resources>
 
     <string name="app_name">KLauncher</string>
+    <string name="deleteApp">拖入此处可卸载</string>
 
 </resources>
