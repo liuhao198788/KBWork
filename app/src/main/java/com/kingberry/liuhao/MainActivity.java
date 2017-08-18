@@ -48,6 +48,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
     private static final String TAG="MainActicity";
     private static final String MY_KB_PKG_NAME ="com.kingberry.liuhao";
+    private static final String INPUT_PKG="com.android.inputmethod.latin";
     private static  final int lineWidth = 15; //网格线的宽度
 
     //private AppInstallStateReceiver mAppStateReceiver;
@@ -302,6 +303,10 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                     if(pkg.activityInfo.packageName.equals(MY_KB_PKG_NAME)){
                         continue;
                     }
+                    if(pkg.activityInfo.packageName.equals(INPUT_PKG)){
+                        continue;
+                    }
+
                     AppItem appInfo=new AppItem();
                     appInfo.setAppIcon(pkg.activityInfo.loadIcon(pm));
                     appInfo.setAppName((String) pkg.activityInfo.loadLabel(pm));

@@ -18,7 +18,7 @@ import com.kingberry.liuhao.MyIterface.DropTarget;
 public class DragLayer extends LinearLayout implements DragController.DraggingListener{
 
     private DragController mDragController;
-    private RecyclerView mView;
+    private RecyclerView mRecyclerView;
     private int deleteZoneId;
     private DragController.DraggingListener listener;
 
@@ -51,11 +51,11 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
     }
 
     public RecyclerView getDragView() {
-        return mView;
+        return mRecyclerView;
     }
 
     public void setDragView(RecyclerView view) {
-        mView = view;
+        mRecyclerView = view;
     }
 
     /**
@@ -82,10 +82,10 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
         // We are starting a drag.
         // Build up a list of DropTargets from the child views of the GridView.
         // Tell the drag controller about them.
-        if (mView != null) {
+        if (mRecyclerView != null) {
             //将所有child view存入drop target容器里面
-            for(int i = 0; i < mView.getChildCount(); i++){
-                DropTarget view = (DropTarget) mView.getChildAt(i);
+            for(int i = 0; i < mRecyclerView.getChildCount(); i++){
+                DropTarget view = (DropTarget) mRecyclerView.getChildAt(i);
                 mDragController.addDropTarget(view);
             }
         }
@@ -102,7 +102,6 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
         if (listener != null) {
             listener.onDragStart(source, info, dragAction);
         }
-
     }
 
     /**
