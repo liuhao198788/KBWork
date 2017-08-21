@@ -41,3 +41,8 @@ public void onPageChange(int index) {
 log ： 0811 
 添加多语言切换
 文件夹 ： value-en
+
+
+log: 0818
+A26 输入法，开机后，隔一段时间，原本在桌面上显示后，就消失了
+解决第二次进去launcher时，死掉的问题
