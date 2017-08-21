@@ -48,7 +48,6 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.mBaseViewHolde
             holder.layout.setOnLongClickListener(longClickListener);
         }
         if(clickListener != null){
-
             holder.layout.setOnClickListener(clickListener);
         }
 
@@ -73,6 +72,8 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.mBaseViewHolde
                 String cls = appItem.getAppMainAty();
                 ComponentName componentName = new ComponentName(pkg, cls);
                 Intent intent = new Intent();
+                //添加到任务栈 0821 add by liuhao
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setComponent(componentName);
                 mContext.startActivity(intent);
             }

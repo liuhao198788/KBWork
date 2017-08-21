@@ -30,6 +30,7 @@ import com.kingberry.liuhao.drag.DragLayer;
 import com.kingberry.liuhao.drag.DraggableLayout;
 import com.kingberry.liuhao.drag.ScrollController;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.kingberry.liuhao.AppUtils.MAIN_ATY;
@@ -140,23 +141,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         }
     }
 
-    /***********************************************************************************
-    public void clickRemove(View view){
-        mList.remove(mList.size() -1);
-        mAdapter.notifyDataSetChanged();
-
-        updateIncatorNum();
-    }
-
-        public void clickAdd(View view){
-        AppItem item = new AppItem("debug", R.mipmap.launcher2);
-        item.itemPos = mList.size();
-        mList.add(mList.size(), item);
-        mAdapter.notifyDataSetChanged();
-
-        updateIncatorNum();
-    }
-     ************************************************************************************/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,16 +169,26 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
     public void onBackPressed() {
-        mDeleteZone.setVisibility(View.GONE);
 
-        if (!mNeedShake) {
-            super.onBackPressed();
-        } else {
-            mNeedShake = false;
-            mCount = 0;
-            mStartShake = false;
+        int curPage= mScrollController.getCurrentPageIndex();
+        if(curPage!=0){
+            mScrollController.smoothScrollToPage(0);
+        }else {
+            return ;
         }
+
+//        mDeleteZone.setVisibility(View.GONE);
+//
+//        if (!mNeedShake) {
+//            super.onBackPressed();
+//        } else {
+//            mNeedShake = false;
+//            mCount = 0;
+//            mStartShake = false;
+//        }
     }
+
+
 
     @Override
     protected void onPause() {
@@ -270,12 +264,10 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
         mDragLayer.setDragView(mRecyclerView);
 
-
         addAppReceiver=new AddAppReceiver();
         IntentFilter addFilter = new IntentFilter();
         addFilter.addAction(MyParamsCls.mAddAppAction);
         this.registerReceiver(addAppReceiver, addFilter);
-
 
         removeAppReceiver=new RemoveAppReceiver();
         IntentFilter removeFilter = new IntentFilter();
@@ -288,7 +280,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         this.registerReceiver(replaceAppReceiver, replaceFilter);
 
     }
-
 
     private void initData(){
 
@@ -389,6 +380,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
     public void onPageChange(int index) {
+//        indexPage=index;
+
         mIndicator.setOffset(index);
 
         //add by liuhao 0808
@@ -489,7 +482,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                         unstallApp(sourceItem.getPkgName());
                     }
                 } else {
-                    Toast.makeText(MainActivity.this, "不能删除这个条目！", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "no delete action", Toast.LENGTH_SHORT).show();
                 }
             }
             //item之间的替换操作
@@ -540,9 +533,9 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             needUpdateDataPageIndex=sourcePos/pageSize;
         }
         //位置交换
-        //Collections.swap(MyParamsCls.mAppList, sourcePos, targetPos);
+        Collections.swap(MyParamsCls.mAppList, sourcePos, targetPos);
         //modify by liuhao 0803 for Change itemPositon
-        exChangePosition(sourcePos,targetPos);
+        //exChangePosition(sourcePos,targetPos);
         refreshItemList();
         mAdapter.notifyDataSetChanged();
         //modify by liuhao 0728 for changerPosition
