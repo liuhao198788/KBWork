@@ -175,7 +175,6 @@ public class DragController {
                 screenX, screenY,
                 0, 0, bitmap.getWidth(), bitmap.getHeight(),
                 source, dragInfo, dragAction);
-        Lg.e("**************** source: " + source + " dragInfo: " + dragInfo);
 
         bitmap.recycle();
 
@@ -381,7 +380,7 @@ public class DragController {
             //左边有效翻页区域
             int leftValidZone = VALID_ZONE;
 
-            //右翻顿
+            //右翻页
             if(rightValidZone <= ev.getRawX()){
                 if(!isRightControlPageTurn){
                     handler.sendEmptyMessageDelayed(1, REMAIN_TIME);
@@ -392,7 +391,7 @@ public class DragController {
                 isRightControlPageTurn = false;
             }
 
-            //左翻顿
+            //左翻页
             if(leftValidZone >= ev.getRawX()){
                 if(!isLeftControlPageTurn){
                     handler.sendEmptyMessageDelayed(2, REMAIN_TIME);
@@ -487,7 +486,7 @@ public class DragController {
     }
 
     /**
-     * 寻找放下位置的目栿
+     * 寻找放下位置的目标
      * @param x
      * @param y
      * @param dropCoordinates
@@ -522,7 +521,7 @@ public class DragController {
     }
 
     /**
-     * 防止坐标值越畿
+     * 防止坐标值越界
      */
     private static int clamp(int val, int min, int max) {
         if (val < min) {

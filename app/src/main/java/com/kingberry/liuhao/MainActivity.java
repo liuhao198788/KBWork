@@ -504,7 +504,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                     Lg.e("targetItem is null in replace action !!!");
                     return;
                 }
-
                 executeItemReplaceAction(sourceItem, targetItem);
             }
         }
