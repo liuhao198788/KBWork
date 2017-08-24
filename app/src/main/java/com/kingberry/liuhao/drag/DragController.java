@@ -12,12 +12,15 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 
 import com.kingberry.liuhao.Lg;
 import com.kingberry.liuhao.MyIterface.DragListener;
 import com.kingberry.liuhao.MyIterface.DragSource;
 import com.kingberry.liuhao.MyIterface.DropTarget;
+import com.kingberry.liuhao.MyIterface.MyDragState;
 
 import java.util.ArrayList;
 
@@ -26,12 +29,19 @@ import java.util.ArrayList;
  */
 
 public class DragController {
+
     private static final String TAG = "DragController";
+
+    private boolean isEnterFlag = false ;
 
     private static final int VALID_ZONE = 60;
     private static final int REMAIN_TIME = 500;
     private boolean isRightControlPageTurn = false;
     private boolean isLeftControlPageTurn = false;
+
+
+    private static final int ANIMATION_DURATION = 200;
+
 
     /**
      * Indicates the drag is a move.
@@ -119,6 +129,15 @@ public class DragController {
 
     private InputMethodManager mInputMethodManager;
 
+
+    private MyDragState myDragState;
+
+    public void setMyDragState(MyDragState myDragState) {
+        // TODO Auto-generated method stub
+        this.myDragState = myDragState;
+    }
+
+
     /**
      * Interface to receive notifications when a drag starts or stops
      */
@@ -160,6 +179,7 @@ public class DragController {
         mTuozhuaiView = v;
 
         //生成一个bitmap
+
         Bitmap bitmap = getViewBitmap(v);
         if (bitmap == null) {
             return;
@@ -325,8 +345,12 @@ public class DragController {
                 break;
             case MotionEvent.ACTION_MOVE:
                 //移动拖拽视图
-                dragView.move((int) ev.getRawX(), (int) ev.getRawY());
                 Log.e("DragController","移动拖拽视图");
+//                if(myDragState!=null){
+//                    myDragState.isDraging(true);
+//                }
+
+                dragView.move((int) ev.getRawX(), (int) ev.getRawY());
                 //左右滑屏
                 monitorPageTurning(ev, displayMetrics, dragView);
 
@@ -345,6 +369,18 @@ public class DragController {
                                     (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
                         }
 
+//                        isEnterFlag=true;
+//                        mDragEnterAnimation((DraggableLayout)dropTarget);
+
+                        //add by liuhao 0824
+
+                        if(((DraggableLayout) dragSource).getItem()!=((DraggableLayout) dropTarget).getItem()){
+                            Animation scaleAnim = new ScaleAnimation(0.0f, 1.6f, 0.0f, 1.6f,Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+                            //设置时间持续时间为 200毫秒
+                            scaleAnim.setDuration(300);
+                            ((DraggableLayout)dropTarget).startAnimation(scaleAnim);
+                        }
+
                         dropTarget.onDragEnter(dragSource, coordinates[0], coordinates[1],
                                 (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
                     }
@@ -358,6 +394,9 @@ public class DragController {
                 mLastDropTarget = dropTarget;
                 break;
             case MotionEvent.ACTION_UP:
+
+                isEnterFlag = false;
+
                 if (isDragging) {
                     drop(downX, downY);
                 }
@@ -370,12 +409,37 @@ public class DragController {
         return true;
     }
 
+
+    public void mDragEnterAnimation(final View v) {
+
+        final Animation scaleAnim = new ScaleAnimation(0.0f, 1.5f, 0.0f, 1.5f,Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        scaleAnim.setDuration(ANIMATION_DURATION);
+
+        scaleAnim.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                if (isEnterFlag==true) {
+                    scaleAnim.reset();
+                    v.startAnimation(scaleAnim);
+                }
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+        });
+        v.startAnimation(scaleAnim);
+    }
+
     private void monitorPageTurning(MotionEvent ev, DisplayMetrics metrics, DragView itemView) {
         if(isDragging){
             //右边有效翻页区域（不能是屏幕宽度，因为getRawX到达不了这个宽度值）
             int rightValidZone = metrics.widthPixels - VALID_ZONE;
-
-            Log.e("DragController","monitorPageTurning : ->"+metrics.widthPixels);
 
             //左边有效翻页区域
             int leftValidZone = VALID_ZONE;
@@ -439,7 +503,15 @@ public class DragController {
      *              || super.dispatchKeyEvent(event);
      */
     public boolean dispatchKeyEvent(KeyEvent event) {
-        Lg.e("DragController dispatchKeyEvent");
+
+//        if(event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() != KeyEvent.ACTION_UP) {
+//            //不响应按键抬起时的动作
+//
+//            return true;
+//        }
+
+        Lg.e("DragController dispatchKeyEvent ：isDragging = "+isDragging);
+
         return isDragging;
     }
 
@@ -475,7 +547,7 @@ public class DragController {
             dropTarget.onDrop(dragSource, coordinates[0], coordinates[1],
                     (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
             View v = (View) dropTarget;
-            Lg.e("DragController============= view: " + v);
+            Lg.e("DragController============= view: left - >" + dropTarget.getLeft());
             dragSource.onDropCompleted(v, true);
             return true;
         }

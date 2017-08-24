@@ -3,6 +3,7 @@ package com.kingberry.liuhao.drag;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -79,8 +80,8 @@ public class DragView extends View
         if (isNeedDragBg) {
             Paint p = new Paint();
             p.setStyle (Paint.Style.FILL);
-            p.setColor (0xFFFFFFFF);
-            p.setAlpha (68);
+            p.setColor (Color.TRANSPARENT);
+           // p.setAlpha (68);
             canvas.drawRect(0, 0, getWidth(), getHeight(), p);
         }
 
@@ -94,7 +95,7 @@ public class DragView extends View
             canvas.scale(scale, scale);
         }
         Paint p2 = new Paint();
-        p2.setAlpha (100);
+        //p2.setAlpha (100);
         canvas.drawBitmap(mBitmap, 0.0f, 0.0f, p2);
     }
 

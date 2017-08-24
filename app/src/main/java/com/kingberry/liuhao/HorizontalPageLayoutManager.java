@@ -223,6 +223,7 @@ public class HorizontalPageLayoutManager extends RecyclerView.LayoutManager {
             //判断矩形是否相交
             if (Rect.intersects(displayRect, allItemFrames.get(i))) {
                 View view = recycler.getViewForPosition(i);
+                //DraggableLayout view= (DraggableLayout) view1.findViewById(R.id.layout);
                 addView(view);
                 measureChildWithMargins(view, itemWidthUsed, itemHeightUsed);
                 Rect rect = allItemFrames.get(i);

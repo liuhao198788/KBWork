@@ -13,13 +13,13 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
-import android.view.animation.TranslateAnimation;
 import android.widget.Toast;
 
 import com.kingberry.liuhao.MyIterface.DeleteItemInterface;
@@ -29,6 +29,7 @@ import com.kingberry.liuhao.drag.DragController;
 import com.kingberry.liuhao.drag.DragLayer;
 import com.kingberry.liuhao.drag.DraggableLayout;
 import com.kingberry.liuhao.drag.ScrollController;
+import com.kingberry.liuhao.impl.MyItemChangeHelperCallback;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +51,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     private static final String TAG="MainActicity";
     private static final String MY_KB_PKG_NAME ="com.kingberry.liuhao";
     private static final String INPUT_PKG="com.android.inputmethod.latin";
-    private static  final int lineWidth = 15; //网格线的宽度
+    private static  final int lineWidth = 12; //网格线的宽度
 
     //private AppInstallStateReceiver mAppStateReceiver;
     private AddAppReceiver addAppReceiver;
@@ -108,6 +109,16 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     /** 拖动完成时，需要更新数据的页面 */
     private int needUpdateDataPageIndex=-1;
 
+    /** 点击后，重新返回时，需要刷新的页面   */
+    private int backUpdatePageIndex=-1;
+
+    ItemTouchHelper.Callback callback ;
+    /**
+     * 实例化ItemTouchHelper对象,然后添加到RecyclerView
+     */
+    ItemTouchHelper helper ;
+
+
     /**
      * @Title: getDpiInfo
      * @Description: 获取手机的屏幕密度DPI
@@ -164,8 +175,29 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+//        refreshItemList();
+//        mAdapter.notifyDataSetChanged();
+
+//        mAdapter.setOnItemClickPosListener(new DemoAdapter.IOnItemClickPos() {
+//            @Override
+//            public void getItemPos(int pos) {
+//                Log.e(TAG, "onResume: list -> "+ mRecyclerView.getChildCount() );
+//                backUpdatePageIndex = pos/pageSize;
+//                Log.e(TAG,"OnClick Pos : "+pos + " -- backUpdatePageIndex :" + backUpdatePageIndex);
+//                mAdapter.notifyItemRangeChanged(backUpdatePageIndex*pageSize,backUpdatePageIndex*(pageSize+1)-1);
+//            }
+//        });
+
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+
+        //add by liuhao 0824
+        mAdapter.notifyItemRangeChanged(0,MyParamsCls.mAppList.size());
     }
 
     public void onBackPressed() {
@@ -226,8 +258,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         //获取屏幕长宽像素信息
         getDpiInfo();
 
-        mColumn = (int) Math.floor(MyParamsCls.Width / 300);
-        mRow = (int) Math.floor(MyParamsCls.Height / 400);
+        mColumn = (int) Math.floor(MyParamsCls.Width / 300) ;
+        mRow = (int) Math.floor(MyParamsCls.Height / 300) ;
 
         pageSize = mRow * mColumn ;
 
@@ -240,7 +272,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         mRecyclerView = (RecyclerView) findViewById(R.id.demo_listview);
 
         //为recyclerView添加间距
-        SpacesItemDecoration mItemDecoration=new SpacesItemDecoration(MainActivity.this,mRow,mColumn,lineWidth,R.color.black);
+        SpacesItemDecoration mItemDecoration=new SpacesItemDecoration(MainActivity.this,mRow,mColumn,lineWidth);
         mRecyclerView.addItemDecoration(mItemDecoration);
 
         mIndicator = (CircleIndicator) findViewById(R.id.demo_indicator);
@@ -263,6 +295,25 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         mIndicator.setNumber(indicatorNumber);
 
         mDragLayer.setDragView(mRecyclerView);
+
+        callback = new MyItemChangeHelperCallback(mAdapter);
+        /**
+         * 实例化ItemTouchHelper对象,然后添加到RecyclerView
+         */
+        helper = new ItemTouchHelper(callback);
+
+        helper.attachToRecyclerView(mRecyclerView);
+
+//        mDragController.setMyDragState(new MyDragState() {
+//            @Override
+//            public void isDraging(boolean isDraging) {
+//                if (isDraging==true){
+//                    helper.attachToRecyclerView(mRecyclerView);
+//                }
+//            }
+//        });
+
+        helper.attachToRecyclerView(mRecyclerView);
 
         addAppReceiver=new AddAppReceiver();
         IntentFilter addFilter = new IntentFilter();
@@ -377,6 +428,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
         mDragController.setDraggingListener(mDragLayer);
         mDragController.setScrollController(mScrollController);
+
     }
 
     public void onPageChange(int index) {
@@ -400,11 +452,12 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         }
 
         //add by liuhao for animation 0721
-        if (!mStartShake) {
-            mStartShake = true;
-            mNeedShake = true;
-            shakeAnimation(view);
-        }
+        //modify by liuhao 0822
+//        if (!mStartShake) {
+//            mStartShake = true;
+//            mNeedShake = true;
+//            DragShakeAnimation(view);
+//        }
 
         Lg.d("onLongClick ********************* Drag started");
         DragSource dragSource = (DragSource) view;
@@ -476,7 +529,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                     Log.e(TAG,"sourceItem is null in delete action !!!");
                     return;
                 }
-
                 if (sourceItem.isDeletable()) {
                     if(MyParamsCls.mAppList.contains(sourceItem)){
                         unstallApp(sourceItem.getPkgName());
@@ -511,7 +563,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         if(mDragLayer.getDraggingListener() != null){
             mDragLayer.getDraggingListener().onDragEnd();
         }
-
     }
 
     /*
@@ -532,19 +583,12 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             needUpdateDataPageIndex=sourcePos/pageSize;
         }
         //位置交换
+        //mAdapter.notifyItemMoved(sourcePos,targetPos);
         Collections.swap(MyParamsCls.mAppList, sourcePos, targetPos);
         //modify by liuhao 0803 for Change itemPositon
-        //exChangePosition(sourcePos,targetPos);
+//        exChangePosition(sourcePos,targetPos);
         refreshItemList();
         mAdapter.notifyDataSetChanged();
-        //modify by liuhao 0728 for changerPosition
-//        View item = mRecyclerView.getChildAt(sourcePos);
-//        View item2 = mRecyclerView.getChildAt(targetPos);
-//        TranslateAnimation translateAnimation = new TranslateAnimation(item.getLeft(), item.getBottom(), item2.getLeft(), item2.getBottom());
-//        translateAnimation.setFillAfter(true);
-//        translateAnimation.setDuration(3000);
-//        item.startAnimation(translateAnimation);
-//        exChangePosition(sourcePos,targetPos);
     }
 
     /**
@@ -565,25 +609,11 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
 
-    /** 获取移动动画 */
-    public Animation getMoveAnimation(float toXValue, float toYValue) {
-        TranslateAnimation mTranslateAnimation = new TranslateAnimation(
-                Animation.RELATIVE_TO_SELF, 0.0F,
-                Animation.RELATIVE_TO_SELF,toXValue,
-                Animation.RELATIVE_TO_SELF, 0.0F,
-                Animation.RELATIVE_TO_SELF, toYValue);// 当前位置移动到指定位置
-        mTranslateAnimation.setFillAfter(true);// 设置一个动画效果执行完毕后，View对象保留在终止的位置。
-        mTranslateAnimation.setDuration(300L);
-        return mTranslateAnimation;
-    }
-
-
     private void refreshItemList(){
         for(int i = 0; i < MyParamsCls.mAppList.size(); i++){
             MyParamsCls.mAppList.get(i).itemPos = i;
         }
     }
-
 
     //卸载应用程序
     public void unstallApp(String packageName){
@@ -594,24 +624,31 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
 
-    private void shakeAnimation(final View v) {
+    /**
+     * 晃动动画 把需要晃动的View传入即可
+     *
+     * @param v
+     */
+    public void DragShakeAnimation(final View v) {
         float rotate = 0;
         int c = mCount++ % 5;
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        if (dm != null) {
-            mDensity = dm.density;
-        }
-        if (c == 0) {
-            rotate = DEGREE_0;
-        } else if (c == 1) {
-            rotate = DEGREE_1;
-        } else if (c == 2) {
-            rotate = DEGREE_2;
-        } else if (c == 3) {
-            rotate = DEGREE_3;
-        } else {
-            rotate = DEGREE_4;
+        switch (c) {
+            case 0:
+                rotate = DEGREE_0;
+                break;
+            case 1:
+                rotate = DEGREE_1;
+                break;
+            case 2:
+                rotate = DEGREE_2;
+                break;
+            case 3:
+                rotate = DEGREE_3;
+                break;
+            default:
+                rotate = DEGREE_4;
+                break;
+
         }
 
         final RotateAnimation mra = new RotateAnimation(rotate, -rotate, ICON_WIDTH * mDensity / 2, ICON_HEIGHT * mDensity / 2);
@@ -665,6 +702,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
     }
 
 
+
+
     class AddAppReceiver extends BroadcastReceiver{
         public void onReceive(Context context, Intent intent) {
            String pkg = intent.getStringExtra("addAppPkgName");
@@ -683,11 +722,11 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
             MyParamsCls.mAppList.add(MyParamsCls.mAppList.size(),appInfo);
 
-            refreshItemList();
-            mAdapter.notifyDataSetChanged();
+//            refreshItemList();
+//            mAdapter.notifyDataSetChanged();
+            mAdapter.notifyItemInserted(appInfo.itemPos);
             updateIncatorNum();
 
-//
             AppUtils.saveDataOrder(MainActivity.this);
         }
     }
@@ -704,10 +743,13 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                         Log.e(TAG,"REMOVE:"+i+" -> "+item.getAppName());
                         MyParamsCls.mAppList.remove(item);
 
-                        refreshItemList();
-                        mAdapter.notifyDataSetChanged();
+//                        refreshItemList();
+//                        mAdapter.notifyDataSetChanged();
+//                        updateIncatorNum();
+                        mAdapter.notifyItemRemoved(item.itemPos);
                         updateIncatorNum();
-                        break;
+
+                    break;
                     }
                 }
                 AppUtils.saveDataOrder(MainActivity.this);

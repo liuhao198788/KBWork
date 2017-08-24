@@ -47,6 +47,7 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
     @Override
     public void onDragEnter(DragSource source, int x, int y, int xOffset,
                             int yOffset, DragView dragView, Object dragInfo) {
+
     }
 
     @Override

@@ -28,9 +28,12 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
 
     public final int[] ATRRS = new int[]{android.R.attr.listDivider};
 
+    Context context;
+
     public SpacesItemDecoration(Context context) {
         final TypedArray ta = context.obtainStyledAttributes(ATRRS);
         this.mDividerDarwable = ta.getDrawable(0);
+//        mColorPaint.setColor(context.getResources().getColor(R.color.color_777572));
         ta.recycle();
     }
 
@@ -38,11 +41,11 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
      int dividerHight  分割线的线宽
      int dividerColor  分割线的颜色
      */
-    public SpacesItemDecoration(Context context, int mRow ,int mColumn,int dividerHight, int dividerColor) {
+    public SpacesItemDecoration(Context context, int mRow ,int mColumn,int dividerHight) {
         this(context);
+        this.context=context;
         mDividerHight = dividerHight;
         mColorPaint = new Paint();
-        mColorPaint.setColor(dividerColor);
         this.mColumn=mColumn;
         this.mRow=mRow;
     }
@@ -61,6 +64,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
     public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
         super.onDraw(c, parent, state);
         //画水平和垂直分割线
+        mColorPaint.setColor(context.getResources().getColor(R.color.mItemColor));
         drawHorizontalDivider(c, parent);
         drawVerticalDivider(c, parent);
     }
@@ -71,8 +75,8 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             final View child = parent.getChildAt(i);
             final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
 
-            final int top = child.getTop() - params.topMargin;
-            final int bottom = child.getBottom() + params.bottomMargin;
+            final int top = child.getTop() - params.topMargin ;
+            final int bottom = child.getBottom() + params.bottomMargin + mDividerHight;
 
             int left = 0;
             int right = 0;
@@ -82,7 +86,9 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             if ((i % mColumn) == 0) {
                 //Log.e("SpacesItemDecoration","mColumn = "+mColumn);
                 //item左边分割线
-                left = child.getLeft();
+                left = child.getLeft() - mDividerHight ;
+                //right = left + mDividerHight;
+                //modify by liuhao 0822
                 right = left + mDividerHight;
                 mDividerDarwable.setBounds(left, top, right, bottom);
                 mDividerDarwable.draw(c);
@@ -99,13 +105,14 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             }
 
             //非左边第一列
-            left = child.getRight() + params.rightMargin - mDividerHight;
+            left = child.getRight() + params.rightMargin;
             right = left + mDividerHight;
 
             //画分割线
             mDividerDarwable.setBounds(left, top, right, bottom);
             mDividerDarwable.draw(c);
             if (mColorPaint != null) {
+                //mColorPaint.setColor(context.getResources().getColor(R.color.color_777572));
                 c.drawRect(left, top, right, bottom, mColorPaint);
             }
 
@@ -120,7 +127,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
 
             final int left = child.getLeft() - params.leftMargin - mDividerHight;
-            final int right = child.getRight() + params.rightMargin;
+            final int right = child.getRight() + params.rightMargin + mDividerHight;
             int top = 0;
             int bottom = 0;
 
@@ -130,7 +137,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
                // Log.e("SpacesItemDecoration","mRow = "+mRow);
 
                 //当前item最上面的分割线
-                top = child.getTop();
+                top = child.getTop() - mDividerHight;
                 //当前item下面的分割线
                 bottom = top + mDividerHight;
                 mDividerDarwable.setBounds(left, top, right, bottom);
@@ -148,6 +155,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
             mDividerDarwable.setBounds(left, top, right, bottom);
             mDividerDarwable.draw(c);
             if (mColorPaint != null) {
+                //mColorPaint.setColor(context.getResources().getColor(R.color.color_777572));
                 c.drawRect(left, top, right, bottom, mColorPaint);
             }
         }

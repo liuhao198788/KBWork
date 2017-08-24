@@ -3,6 +3,7 @@ package com.kingberry.liuhao.drag;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.LinearLayout;
 
 import com.kingberry.liuhao.MyIterface.DragSource;
 import com.kingberry.liuhao.MyIterface.DropTarget;
+import com.kingberry.liuhao.R;
 
 /**
  * Created by liuhao on 2017/7/17.
@@ -32,6 +34,16 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        //add by liuhao 0823
+        //重写dispatchKeyEvent方法 按返回键back 执行两次的解决方法
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() != KeyEvent.ACTION_UP) {
+            //不响应按键抬起时的动作
+            //注意这儿返回值为true时该事件将不会继续往下传递，false时反之。根据程序的需要调整
+
+            Log.e("DragLayer","dispatchKeyEvent..........true");
+            return true;
+        }
+
         return mDragController.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
     }
 
@@ -64,7 +76,11 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
      */
     public void loadChildView(View view){
         if(view != null){
-            DropTarget dropTarget = (DropTarget)view;
+
+            //modify by liuhao 0822
+            //DropTarget dropTarget = (DropTarget)view;
+
+            DropTarget dropTarget = (DropTarget)view.findViewById(R.id.layout);
             mDragController.addDropTarget(dropTarget);
         }
     }
@@ -85,7 +101,11 @@ public class DragLayer extends LinearLayout implements DragController.DraggingLi
         if (mRecyclerView != null) {
             //将所有child view存入drop target容器里面
             for(int i = 0; i < mRecyclerView.getChildCount(); i++){
-                DropTarget view = (DropTarget) mRecyclerView.getChildAt(i);
+
+                //modify  by liuhao 0822
+                //DropTarget view = (DropTarget) mRecyclerView.getChildAt(i);
+
+                DropTarget view = (DropTarget) mRecyclerView.getChildAt(i).findViewById(R.id.layout);
                 mDragController.addDropTarget(view);
             }
         }
