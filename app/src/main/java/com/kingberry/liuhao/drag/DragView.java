@@ -23,7 +23,7 @@ import android.view.WindowManager;
 public class DragView extends View
 {
     // Number of pixels to add to the dragged item for scaling.  Should be even for pixel alignment.
-    private static final int DRAG_SCALE = 40;   // In Launcher, value is 40
+    private static final int DRAG_SCALE = 80;   // In Launcher, value is 40
 
     private Bitmap mBitmap;
     private int mRegistrationX;

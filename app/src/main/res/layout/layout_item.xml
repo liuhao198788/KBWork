@@ -4,6 +4,7 @@
     android:layout_height="fill_parent"
     android:gravity="center"
     android:id="@+id/girdItemLayout"
+    android:background="@color/mItemColor"
     >
     <!--    android:background="@drawable/item_select"
    -->

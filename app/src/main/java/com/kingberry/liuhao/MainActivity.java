@@ -259,7 +259,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         getDpiInfo();
 
         mColumn = (int) Math.floor(MyParamsCls.Width / 300) ;
-        mRow = (int) Math.floor(MyParamsCls.Height / 300) ;
+        mRow = (int) Math.floor(MyParamsCls.Height / 400) ;
 
         pageSize = mRow * mColumn ;
 

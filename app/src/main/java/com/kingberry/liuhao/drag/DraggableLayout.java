@@ -63,7 +63,8 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
     @Override
     public boolean acceptDrop(DragSource source, int x, int y, int xOffset,
                               int yOffset, DragView dragView, Object dragInfo) {
-        return (cellNumber >= 0) && source != this;
+//        return (cellNumber >= 0) && source != this;
+        return  source!=this;
     }
 
     @Override
@@ -79,6 +80,7 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
 
     @Override
     public void onDropCompleted(View target, boolean success) {
+//        MyParamsCls.isAnimationFlag=false;
         if (listener != null) {
             listener.onDropCompleted(this, target, success);
         }

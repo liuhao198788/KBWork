@@ -30,4 +30,6 @@ public class MyParamsCls {
     public static String  mRemoveAppAction="KingBerry.RemoveApp.RecevierAction";
     public static String  mReplaceAppAction="KingBerry.ReplaceApp.RecevierAction";
 
+//    public static boolean isAnimationFlag = false ;
+
 }

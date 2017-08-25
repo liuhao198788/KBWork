@@ -78,7 +78,7 @@ public class DeleteZone extends LinearLayout implements DropTarget {
      * React to a dragged object entering the area of this DeleteZone.
      * Provide the user with some visual feedback.
      */
-    public void onDragEnter(DragSource source, int x, int y, int xOffset, int yOffset,
+    public void onDragEnter(DragSource source ,int x, int y, int xOffset, int yOffset,
                             DragView dragView, Object dragInfo) {
         // Set the image level so the image is highlighted;
         if (isEnabled() && getBackground() != null) getBackground().setLevel(2);

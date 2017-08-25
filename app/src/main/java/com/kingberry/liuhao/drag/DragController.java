@@ -12,8 +12,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 
 import com.kingberry.liuhao.Lg;
@@ -40,7 +40,7 @@ public class DragController {
     private boolean isLeftControlPageTurn = false;
 
 
-    private static final int ANIMATION_DURATION = 200;
+    private static final int ANIMATION_DURATION = 800;
 
 
     /**
@@ -344,12 +344,12 @@ public class DragController {
                 mMotionDownY = downY;
                 break;
             case MotionEvent.ACTION_MOVE:
+
                 //移动拖拽视图
-                Log.e("DragController","移动拖拽视图");
+//                Log.e("DragController","移动拖拽视图");
 //                if(myDragState!=null){
 //                    myDragState.isDraging(true);
 //                }
-
                 dragView.move((int) ev.getRawX(), (int) ev.getRawY());
                 //左右滑屏
                 monitorPageTurning(ev, displayMetrics, dragView);
@@ -361,6 +361,8 @@ public class DragController {
 
                 if (dropTarget != null) {
                     if (mLastDropTarget == dropTarget) {
+
+                        //isEnterFlag=false;
                         dropTarget.onDragOver(dragSource, coordinates[0], coordinates[1],
                                 (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
                     } else {
@@ -368,21 +370,17 @@ public class DragController {
                             mLastDropTarget.onDragExit(dragSource, coordinates[0], coordinates[1],
                                     (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
                         }
-
-//                        isEnterFlag=true;
-//                        mDragEnterAnimation((DraggableLayout)dropTarget);
-
-                        //add by liuhao 0824
-
-                        if(((DraggableLayout) dragSource).getItem()!=((DraggableLayout) dropTarget).getItem()){
-                            Animation scaleAnim = new ScaleAnimation(0.0f, 1.6f, 0.0f, 1.6f,Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-                            //设置时间持续时间为 200毫秒
-                            scaleAnim.setDuration(300);
-                            ((DraggableLayout)dropTarget).startAnimation(scaleAnim);
+                        //add by liuhao 0825
+                        if (dropTarget instanceof DraggableLayout){
+                            if(((DraggableLayout) dragSource).getItem()!=((DraggableLayout) dropTarget).getItem()){
+                                isEnterFlag=true;
+                                mDragEnterAnimation((DraggableLayout)dropTarget);
+                            }
                         }
 
                         dropTarget.onDragEnter(dragSource, coordinates[0], coordinates[1],
                                 (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
+
                     }
                 } else {
                     if (mLastDropTarget != null) {
@@ -392,6 +390,7 @@ public class DragController {
                 }
 
                 mLastDropTarget = dropTarget;
+
                 break;
             case MotionEvent.ACTION_UP:
 
@@ -403,6 +402,9 @@ public class DragController {
                 endDrag();
                 break;
             case MotionEvent.ACTION_CANCEL:
+
+                isEnterFlag = false;
+
                 endDrag();
         }
 
@@ -412,16 +414,16 @@ public class DragController {
 
     public void mDragEnterAnimation(final View v) {
 
-        final Animation scaleAnim = new ScaleAnimation(0.0f, 1.5f, 0.0f, 1.5f,Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        final Animation alphaAnima = new AlphaAnimation(0.5f,0.1f);
 
-        scaleAnim.setDuration(ANIMATION_DURATION);
+        alphaAnima.setDuration(ANIMATION_DURATION);
 
-        scaleAnim.setAnimationListener(new Animation.AnimationListener() {
+        alphaAnima.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationEnd(Animation animation) {
                 if (isEnterFlag==true) {
-                    scaleAnim.reset();
-                    v.startAnimation(scaleAnim);
+                    alphaAnima.reset();
+                    v.startAnimation(alphaAnima);
                 }
             }
             @Override
@@ -433,7 +435,7 @@ public class DragController {
 
             }
         });
-        v.startAnimation(scaleAnim);
+        v.startAnimation(alphaAnima);
     }
 
     private void monitorPageTurning(MotionEvent ev, DisplayMetrics metrics, DragView itemView) {
@@ -564,7 +566,7 @@ public class DragController {
      * @param dropCoordinates
      * @return
      */
-    private DropTarget findDropTarget(int x, int y, int[] dropCoordinates) {
+    public DropTarget findDropTarget(int x, int y, int[] dropCoordinates) {
         final Rect r = mRectTemp;
 
         final ArrayList<DropTarget> dropTargets = this.dropTargets;

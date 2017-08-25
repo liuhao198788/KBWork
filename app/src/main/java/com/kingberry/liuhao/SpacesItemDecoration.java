@@ -64,7 +64,7 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
     public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
         super.onDraw(c, parent, state);
         //画水平和垂直分割线
-        mColorPaint.setColor(context.getResources().getColor(R.color.mItemColor));
+        mColorPaint.setColor(context.getResources().getColor(R.color.black));
         drawHorizontalDivider(c, parent);
         drawVerticalDivider(c, parent);
     }
