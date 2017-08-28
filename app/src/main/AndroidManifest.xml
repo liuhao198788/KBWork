@@ -28,6 +28,10 @@
             </intent-filter>
         </activity>
 
+        <!--
+        <service android:name=".BootStartService" />
+        -->
+
         <receiver
             android:name="com.kingberry.liuhao.receiver.BootReceiver"
             android:enabled="true"

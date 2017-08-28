@@ -65,23 +65,17 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.mBaseViewHolde
         layout.canDelete(item.isDeletable());
         layout.setDragListener(this);
 
+        //add by liuhao 0828
+        layout.setAnimaView(holder.layout);
+
 //        holder.girdItemLayout.setOnTouchListener(new OnClickEffectTouchListener());
 //        layout.setOnTouchListener(new OnClickEffectTouchListener());
 
-        holder.girdItemLayout.setOnClickListener(new mItemOnclick(position));
+        holder.layoutLL.setOnClickListener(new mItemOnclick(position));
         layout.setOnClickListener(new mItemOnclick(position));
 
         //Log.e("DemoAdapter","appName = "+holder.tv_title.getText());
 }
-
-    IOnItemClickPos onItemClickPos;
-
-    public interface IOnItemClickPos{
-        void getItemPos(int pos);
-    }
-    public void setOnItemClickPosListener(IOnItemClickPos l) {
-        onItemClickPos = l;
-    }
 
     class mItemOnclick implements View.OnClickListener{
         int pos;
@@ -160,15 +154,15 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.mBaseViewHolde
     class mBaseViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView tv_title;
-        LinearLayout girdItemLayout;
+        LinearLayout layoutLL;
         DraggableLayout layout;
 
         public mBaseViewHolder(View itemView) {
             super(itemView);
-            girdItemLayout= (LinearLayout) itemView.findViewById(R.id.girdItemLayout);
-            tv_title = (TextView) girdItemLayout.findViewById(R.id.tv_title);
-            icon = (ImageView) girdItemLayout.findViewById(R.id.icon);
-            layout = (DraggableLayout) girdItemLayout.findViewById(R.id.layout);
+            layoutLL= (LinearLayout) itemView.findViewById(R.id.layoutLL);
+            tv_title = (TextView) layoutLL.findViewById(R.id.tv_title);
+            icon = (ImageView) layoutLL.findViewById(R.id.icon);
+            layout = (DraggableLayout) layoutLL.findViewById(R.id.layout);
         }
     }
 

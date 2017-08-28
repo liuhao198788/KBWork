@@ -12,8 +12,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 
 import com.kingberry.liuhao.Lg;
@@ -40,7 +38,6 @@ public class DragController {
     private boolean isLeftControlPageTurn = false;
 
 
-    private static final int ANIMATION_DURATION = 800;
 
 
     /**
@@ -129,8 +126,8 @@ public class DragController {
 
     private InputMethodManager mInputMethodManager;
 
-
     private MyDragState myDragState;
+
 
     public void setMyDragState(MyDragState myDragState) {
         // TODO Auto-generated method stub
@@ -371,12 +368,12 @@ public class DragController {
                                     (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
                         }
                         //add by liuhao 0825
-                        if (dropTarget instanceof DraggableLayout){
-                            if(((DraggableLayout) dragSource).getItem()!=((DraggableLayout) dropTarget).getItem()){
-                                isEnterFlag=true;
-                                mDragEnterAnimation((DraggableLayout)dropTarget);
-                            }
-                        }
+//                        if (dropTarget instanceof DraggableLayout){
+//                            if(((DraggableLayout) dragSource).getItem()!=((DraggableLayout) dropTarget).getItem()){
+//                                isEnterFlag=true;
+//                                mDragEnterAnimation((DraggableLayout)dropTarget);
+//                            }
+//                        }
 
                         dropTarget.onDragEnter(dragSource, coordinates[0], coordinates[1],
                                 (int) mTouchOffsetX, (int) mTouchOffsetY, dragView, dragInfo);
@@ -412,31 +409,6 @@ public class DragController {
     }
 
 
-    public void mDragEnterAnimation(final View v) {
-
-        final Animation alphaAnima = new AlphaAnimation(0.5f,0.1f);
-
-        alphaAnima.setDuration(ANIMATION_DURATION);
-
-        alphaAnima.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                if (isEnterFlag==true) {
-                    alphaAnima.reset();
-                    v.startAnimation(alphaAnima);
-                }
-            }
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-        });
-        v.startAnimation(alphaAnima);
-    }
 
     private void monitorPageTurning(MotionEvent ev, DisplayMetrics metrics, DragView itemView) {
         if(isDragging){

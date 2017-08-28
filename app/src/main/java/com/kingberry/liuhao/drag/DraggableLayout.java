@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -26,6 +28,11 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
     private DragListener listener;
     private boolean isDelete;
 
+    private LinearLayout layoutLL;
+
+    private static final int ANIMATION_DURATION = 800;
+    private Animation alphaAnima = new AlphaAnimation(0.38f,0.08f);
+
     public DraggableLayout(Context context, AttributeSet attrs,
                            int defStyle) {
         super(context, attrs, defStyle);
@@ -47,7 +54,8 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
     @Override
     public void onDragEnter(DragSource source, int x, int y, int xOffset,
                             int yOffset, DragView dragView, Object dragInfo) {
-
+        //add by liuhao 0828
+        mDragEnterAnimation(true);
     }
 
     @Override
@@ -58,6 +66,8 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
     @Override
     public void onDragExit(DragSource source, int x, int y, int xOffset,
                            int yOffset, DragView dragView, Object dragInfo) {
+        //add by liuhao 0828
+        mDragEnterAnimation(false);
     }
 
     @Override
@@ -115,6 +125,10 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
         this.listener = listener;
     }
 
+    public void setAnimaView(LinearLayout layoutLL) {
+        this.layoutLL=layoutLL;
+    }
+
 
     @Override
     public boolean isDelete() {
@@ -125,4 +139,35 @@ public class DraggableLayout extends LinearLayout implements DropTarget,DragSour
         this.isDelete = b;
     }
 
+
+    //add by liuhao 0828
+    public void mDragEnterAnimation(final boolean isNeedAnima) {
+
+        if(layoutLL==null){
+            return ;
+        }
+
+        alphaAnima.setDuration(ANIMATION_DURATION);
+
+        alphaAnima.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                if (isNeedAnima==true) {
+                    alphaAnima.reset();
+                    layoutLL.startAnimation(alphaAnima);
+                }
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+        });
+        layoutLL.startAnimation(alphaAnima);
+    }
+
+    
 }

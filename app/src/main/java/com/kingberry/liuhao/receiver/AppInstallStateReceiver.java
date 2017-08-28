@@ -16,12 +16,6 @@ import com.kingberry.liuhao.MyParamsCls;
 
 public class AppInstallStateReceiver extends BroadcastReceiver {
 
-//    private final String TAG = this.getClass().getSimpleName();
-//    public static SharedPreferences sp;
-//    public static SharedPreferences.Editor ed;
-//    public static final String mDATA_NAME="mSaveData";
-//    public static final String strFirstFlag="isFirstLoad";
-//    public static final String strPkgs="PKGS";
 
     private IUninstallListener mUnstallListener;
     private IinstallLinsener mInstallLins;

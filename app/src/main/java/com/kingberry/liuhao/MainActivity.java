@@ -49,7 +49,7 @@ import static com.kingberry.liuhao.AppUtils.strPkgs;
 public class MainActivity extends Activity implements ScrollController.OnPageChangeListener, DragController.DraggingListener, DeleteItemInterface, View.OnLongClickListener, DemoAdapter.ItemDragListener{
 
     private static final String TAG="MainActicity";
-    private static final String MY_KB_PKG_NAME ="com.kingberry.liuhao";
+    private static final String MY_LAUNCHER_PKG_NAME ="com.kingberry.liuhao";
     private static final String INPUT_PKG="com.android.inputmethod.latin";
     private static  final int lineWidth = 12; //网格线的宽度
 
@@ -169,6 +169,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         initDrag();
 
         initView();
+
+//      startService(new Intent(MainActivity.this,BootStartService.class));
 
         //btnLayout = (LinearLayout) findViewById(R.id.layout_btn);
         //btnLayout.setVisibility(View.GONE);
@@ -342,7 +344,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             int  i=0;
             for (ResolveInfo pkg : apps){
                     //ActivityInfo atyInfo = pm.getActivityInfo(getComponentName(),PackageManager.GET_META_DATA);
-                    if(pkg.activityInfo.packageName.equals(MY_KB_PKG_NAME)){
+                    if(pkg.activityInfo.packageName.equals(MY_LAUNCHER_PKG_NAME)){
                         continue;
                     }
                     if(pkg.activityInfo.packageName.equals(INPUT_PKG)){
@@ -373,8 +375,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
             String[] pksArray=MyParamsCls.appPkgs.split(";");
             String[] mainAtyArray=MyParamsCls.mainAty.split(";");
 
-//            List<ResolveInfo> resolveInfos=AppUtils.getAllApps(MainActivity.this);
-
             for (int i = 0; i < pksArray.length; i++) {
 //                ResolveInfo resolveInfo=new ResolveInfo();
 //                for (ResolveInfo tmpResolveInfo : resolveInfos) {
@@ -386,6 +386,11 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
                 Log.e(TAG,"mainAtyArray["+i+"] = "+mainAtyArray[i]);
                 //根据包名取得应用全部信息ResolveInfo
                 ResolveInfo resolveInfo = AppUtils.findAppByPackageName(MainActivity.this, pksArray[i]);
+
+                //add by liuhao 0826 for resolceInfo is null
+                if(resolveInfo==null){
+                    continue;
+                }
 
                 ComponentName  cn= new ComponentName(resolveInfo.activityInfo.packageName, mainAtyArray[i]);
 
@@ -479,7 +484,7 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 //                Toast.makeText(MainActivity.this, "系统应用，不能卸载 ！", Toast.LENGTH_SHORT).show();
 //                return;
             } else {
-                if (appInfo.packageName.contains(MY_KB_PKG_NAME)) {
+                if (appInfo.packageName.contains(MY_LAUNCHER_PKG_NAME)) {
                     mDeleteZone.setVisibility(View.GONE);
 //                    Toast.makeText(MainActivity.this, "应用 ：" + appInfo.loadLabel(pm) + " 不能被卸载！", Toast.LENGTH_SHORT).show();
 //                    return;
@@ -701,9 +706,6 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         v.startAnimation(mra);
     }
 
-
-
-
     class AddAppReceiver extends BroadcastReceiver{
         public void onReceive(Context context, Intent intent) {
            String pkg = intent.getStringExtra("addAppPkgName");
@@ -722,8 +724,8 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
 
             MyParamsCls.mAppList.add(MyParamsCls.mAppList.size(),appInfo);
 
-//            refreshItemList();
-//            mAdapter.notifyDataSetChanged();
+//          refreshItemList();
+//          mAdapter.notifyDataSetChanged();
             mAdapter.notifyItemInserted(appInfo.itemPos);
             updateIncatorNum();
 
@@ -735,24 +737,24 @@ public class MainActivity extends Activity implements ScrollController.OnPageCha
         @Override
         public void onReceive(Context context, Intent intent) {
             String pkg = intent.getStringExtra("removeAppPkgName");
-            Log.e(TAG,"remove:"+" -> "+pkg);
+            Log.e(TAG, "remove:" + " -> " + pkg);
 
             for (int i = 0; i < MyParamsCls.mAppList.size(); i++) {
-                    AppItem item = MyParamsCls.mAppList.get(i);
-                if(item.getPkgName().equals(pkg)){
-                        Log.e(TAG,"REMOVE:"+i+" -> "+item.getAppName());
-                        MyParamsCls.mAppList.remove(item);
+                AppItem item = MyParamsCls.mAppList.get(i);
+                if (item.getPkgName().equals(pkg)) {
+                    Log.e(TAG, "REMOVE:" + i + " -> " + item.getAppName());
+                    MyParamsCls.mAppList.remove(item);
 
-//                        refreshItemList();
-//                        mAdapter.notifyDataSetChanged();
-//                        updateIncatorNum();
-                        mAdapter.notifyItemRemoved(item.itemPos);
-                        updateIncatorNum();
+//                  refreshItemList();
+//                  mAdapter.notifyDataSetChanged();
+//                  updateIncatorNum();
+                    mAdapter.notifyItemRemoved(item.itemPos);
+                    updateIncatorNum();
+                    AppUtils.saveDataOrder(MainActivity.this);
 
                     break;
-                    }
                 }
-                AppUtils.saveDataOrder(MainActivity.this);
+            }
         }
     }
 
